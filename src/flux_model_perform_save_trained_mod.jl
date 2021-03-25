@@ -6,6 +6,7 @@ using MLJ;
 using DataFrames;
 using DataFramesMeta;
 using Statistics;
+using BSON;
 # This function returns train, test data, and save the best trained model for Flux neural network models when train test data are not given
 function flux_mod_train(flux_model,
     x :: DataFrame,
