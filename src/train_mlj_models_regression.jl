@@ -82,6 +82,7 @@ function mlj_mod_train_tt(mlj_model,
     r_squared_precision :: Int64 = 3,
     rmse_precision :: Int64 = 2)
     rm(save_trained_model_at, force = true, recursive = true);
+    mkdir(save_trained_model_at);
     model_perform_df = DataFrame();
     model_perform = DataFrame();
     model_predict_test_train_df = DataFrame();
