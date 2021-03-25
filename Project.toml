@@ -1,5 +1,5 @@
 name = "MLJulFluxFun"
-uuid = AA97B177-9383-4934-8543-0F91A7A02836
+uuid = "AA97B177-9383-4934-8543-0F91A7A02836"
 repo = "https://github.com/4SAnalyticsnModelling/MLJulFluxFun.jl.git"
 authors = ["Symon@4SAnalyticsnModelling"]
 version = "0.0.1"
