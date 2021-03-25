@@ -5,7 +5,7 @@ using DataFrames;
 using DataFramesMeta;
 using Statistics;
 using BSON;
-# This function returns train, test ids, and save the best trained model for Flux neural network models when train test data are not given
+# This function returns train, test ids, and save the best trained model for Flux neural network models when train test data are not pre-split
 function flux_mod_train(flux_model,
     x :: DataFrame,
     y :: Vector,
@@ -97,7 +97,7 @@ function flux_mod_train(flux_model,
     end
     return model_perform_df :: DataFrame, model_predict_test_train_df :: DataFrame
 end
-# This function returns train, test ids, and save the best trained model for Flux neural network models when train test data are given
+# This function returns train, test ids, and save the best trained model for Flux neural network models when train test data are pre-split
 function flux_mod_train_tt(flux_model,
     x :: DataFrame,
     y :: Vector,
