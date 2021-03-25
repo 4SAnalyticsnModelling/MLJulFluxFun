@@ -33,11 +33,7 @@ function flux_mod_train(flux_model,
             Flux.Optimise.update!(optimizer, ps, gs)
         end
     end
-    try
-        rm(save_trained_model_at, recursive = true);
-    catch
-        continue
-    end
+    rm(save_trained_model_at, force = true, recursive = true);
     mkdir(save_trained_model_at);
     for i in 1:niter
         train, test = MLJ.partition(eachindex(y), train_size, shuffle = true);
@@ -131,11 +127,7 @@ function flux_mod_train_tt(flux_model,
             Flux.Optimise.update!(optimizer, ps, gs)
         end
     end
-    try
-        rm(save_trained_model_at, recursive = true);
-    catch
-        continue
-    end
+    rm(save_trained_model_at, force = true, recursive = true);
     mkdir(save_trained_model_at);
     for i in 1:niter
         train, test = MLJ.partition(eachindex(y), train_size, shuffle = true);
