@@ -2,3 +2,6 @@ name = "MLJulFluxFun"
 uuid = "ad295cbf-2088-581f-89bf-79eb1143e401"
 repo = "https://github.com/4SAnalyticsnModelling/MLJulFluxFun.jl.git"
 authors = ["Symon@4SAnalyticsnModelling"]
+
+[deps]
+Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
