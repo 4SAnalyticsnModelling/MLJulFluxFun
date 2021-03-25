@@ -1,6 +1,4 @@
 using MLJ;
-using MLJXGBoostInterface;
-using MLJDecisionTreeInterface;
 using XGBoost;
 using DecisionTree;
 using DataFrames;
