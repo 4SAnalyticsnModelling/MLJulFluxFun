@@ -7,7 +7,7 @@ using DataFrames;
 using DataFramesMeta;
 using Statistics;
 # This function returns train, test data, and save the best trained model for Flux neural network models when train test data are not given
-function flux_model_perform_save_trained_mod(flux_model,
+function flux_mod_train(flux_model,
     x :: DataFrame,
     y :: Vector,
     save_trained_model_as :: String,
