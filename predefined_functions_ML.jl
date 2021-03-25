@@ -1,3 +1,4 @@
+module
 # This script contains functions that are predefined to be used in other scripts.
 # Created by and © 4S Analytics & Modelling Ltd.
 using Flux;
@@ -187,4 +188,5 @@ function flux_model_perform_save_trained_mod(flux_model,
         model_predict_test_train_df = model_predict_test_train_df[model_predict_test_train_df[!, :iter] .== values(model_perform_df[1, :iter]), :];
     end
     return model_perform_df :: DataFrame, model_predict_test_train_df :: DataFrame
-end;
+end
+end
