@@ -9,6 +9,7 @@ function mlj_mod_train(mlj_model,
     x :: DataFrame,
     y :: Vector,
     save_trained_model_at :: String,
+    serial_file_ext :: String,
     tuning_param_name,
     tuning_param_label :: Symbol,
     tuning_param_low :: Number,
@@ -30,7 +31,7 @@ function mlj_mod_train(mlj_model,
             train, test = partition(eachindex(y), train_size, shuffle = true);
             mach = MLJ.machine(mlj_model, x, y);
             MLJ.fit!(mach, rows = train, verbosity = 0);
-            MLJ.save(save_trained_model_at * "/trained_model_" * string(i) * ".jlso", mach, compression=:none);
+            MLJ.save(save_trained_model_at * "/trained_model_" * string(i) * "_" * string(tuning_param) * ".jlso", mach, compression = :none);
             y_pred = MLJ.predict(mach, rows = test);
             y_pred_train = MLJ.predict(mach, rows = train);
             y_train = vec(y[train, :]);
@@ -49,8 +50,9 @@ function mlj_mod_train(mlj_model,
             sort!(model_perform_df, [:rmse_test, :rmse_train], rev = false);
             sort!(model_perform_df, [:r_squared_test, :r_squared_train], rev = true);
             sort!(model_perform_df, :r2_flag, rev = true);
-            if i > 1
-                rm(save_trained_model_at * "/trained_model_" * string(values(model_perform_df[2, :iter])) * ".jlso");
+            if size(model_perform_df)[1] > 1
+                rm(save_trained_model_at * "/trained_model_" * string(values(model_perform_df[2, :iter])) * "_" * string(values(model_perform_df[2, tuning_param_label])) * ".jlso", force = true);
+                rm(save_trained_model_at * "/trained_model_" * string(values(model_perform_df[2, :iter])) * "_" * string(values(model_perform_df[2, tuning_param_label])) * "." * serial_file_ext, force = true);
             else
                 continue
             end
@@ -68,6 +70,7 @@ function mlj_mod_train_tt(mlj_model,
     x :: DataFrame,
     y :: Vector,
     save_trained_model_at :: String,
+    serial_file_ext :: String,
     tuning_param_name,
     tuning_param_label :: Symbol,
     tuning_param_low :: Number,
@@ -89,7 +92,7 @@ function mlj_mod_train_tt(mlj_model,
         for i in 1:niter
             mach = MLJ.machine(mlj_model, x, y);
             MLJ.fit!(mach, rows = train, verbosity = 0);
-            MLJ.save(save_trained_model_at * "/trained_model_" * string(i) * ".jlso", mach, compression = :none);
+            MLJ.save(save_trained_model_at * "/trained_model_" * string(i) * "_" * string(tuning_param) * ".jlso", mach, compression = :none);
             y_pred = MLJ.predict(mach, rows = test);
             y_pred_train = MLJ.predict(mach, rows = train);
             y_train = vec(y[train, :]);
@@ -108,8 +111,9 @@ function mlj_mod_train_tt(mlj_model,
             sort!(model_perform_df, [:rmse_test, :rmse_train], rev = false);
             sort!(model_perform_df, [:r_squared_test, :r_squared_train], rev = true);
             sort!(model_perform_df, :r2_flag, rev = true);
-            if i > 1
-                rm(save_trained_model_at * "/trained_model_" * string(values(model_perform_df[2, :iter])) * ".jlso");
+            if size(model_perform_df)[1] > 1
+                rm(save_trained_model_at * "/trained_model_" * string(values(model_perform_df[2, :iter])) * "_" * string(values(model_perform_df[2, tuning_param_label])) * ".jlso", force = true);
+                rm(save_trained_model_at * "/trained_model_" * string(values(model_perform_df[2, :iter])) * "_" * string(values(model_perform_df[2, tuning_param_label])) * "." * serial_file_ext, force = true);
             else
                 continue
             end
