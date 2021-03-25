@@ -6,7 +6,7 @@ using DecisionTree;
 using DataFrames;
 using DataFramesMeta;
 using Statistics;
-# This function returns train, test ids, and save the best trained model for MLJ models when train test data are not given
+# This function returns train, test ids, and save the best trained model for MLJ models when train test data are not pre-split
 function mlj_mod_train(mlj_model,
     x :: DataFrame,
     y :: Vector,
@@ -65,7 +65,7 @@ function mlj_mod_train(mlj_model,
     end
     return model_perform_df :: DataFrame, model_predict_test_train_df :: DataFrame
 end
-# This function returns train, test ids, and save the best trained model for MLJ models when train test data are given
+# This function returns train, test ids, and save the best trained model for MLJ models when train test data are pre-split
 function mlj_mod_train_tt(mlj_model,
     x :: DataFrame,
     y :: Vector,
