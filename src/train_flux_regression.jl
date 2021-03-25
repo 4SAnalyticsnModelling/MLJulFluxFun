@@ -85,7 +85,7 @@ function flux_mod_train(flux_model,
         sort!(model_perform_df, [:rmse_test, :rmse_train], rev = false);
         sort!(model_perform_df, [:r_squared_test, :r_squared_train], rev = true);
         sort!(model_perform_df, :r2_flag, rev = true);
-        if i > 1
+        if size(model_perform_df)[1] > 1
             rm(save_trained_model_at * "/trained_model_" * string(values(model_perform_df[2, :iter])) * ".bson");
         else
             continue
@@ -179,7 +179,7 @@ function flux_mod_train_tt(flux_model,
         sort!(model_perform_df, [:rmse_test, :rmse_train], rev = false);
         sort!(model_perform_df, [:r_squared_test, :r_squared_train], rev = true);
         sort!(model_perform_df, :r2_flag, rev = true);
-        if i > 1
+        if size(model_perform_df)[1] > 1
             rm(save_trained_model_at * "/trained_model_" * string(values(model_perform_df[2, :iter])) * ".bson");
         else
             continue
