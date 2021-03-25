@@ -1,4 +1,4 @@
-name = "ShapML"
+name = "MLJulFluxFun"
 repo = "https://github.com/4SAnalyticsnModelling/MLJulFluxFun.jl.git"
 authors = ["Symon@4SAnalyticsnModelling"]
 version = "0.0.1"
