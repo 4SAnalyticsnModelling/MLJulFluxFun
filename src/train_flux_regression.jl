@@ -104,6 +104,8 @@ function flux_mod_train_tt(flux_model,
     save_trained_model_at :: String,
     train_ids_in,
     test_ids_in,
+    train_sample_fraction :: Float64 = 1.0,
+    test_sample_fraction :: Float64 = 1.0,        
     niter :: Int64 = 500,
     n_epochs :: Int64 = 200,
     nobs_per_batch :: Int64 = 1,
@@ -115,7 +117,6 @@ function flux_mod_train_tt(flux_model,
     model_perform = DataFrame();
     model_predict_test_train_df = DataFrame();
     model_predict_test_train = DataFrame();
-    train, test = train_ids_in, test_ids_in;
     function loss(flux_model, x, y)
         return loss_measure(vec(flux_model(x)), y)
     end
@@ -130,6 +131,7 @@ function flux_mod_train_tt(flux_model,
     rm(save_trained_model_at, force = true, recursive = true);
     mkdir(save_trained_model_at);
     for i in 1:niter
+        train, test = MLJ.partition(train_ids_in, train_sample_fraction, shuffle = true)[1], MLJ.partition(test_ids_in, test_sample_fraction, shuffle = true)[1];
         x_train = Matrix(x[train, :])';
         y_train = vec(y[train, :]);
         x_test = Matrix(x[test, :])';
