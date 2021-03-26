@@ -78,6 +78,8 @@ function mlj_mod_train_tt(mlj_model,
     tuning_param_step :: Number,
     train_ids_in,
     test_ids_in,
+    train_sample_fraction :: Float64 = 1.0,
+    test_sample_fraction :: Float64 = 1.0,
     niter :: Int64 = 500,
     r_squared_precision :: Int64 = 3,
     rmse_precision :: Int64 = 2)
@@ -87,10 +89,10 @@ function mlj_mod_train_tt(mlj_model,
     model_perform = DataFrame();
     model_predict_test_train_df = DataFrame();
     model_predict_test_train = DataFrame();
-    train, test = train_ids_in, test_ids_in;
     for tuning_param in tuning_param_low : tuning_param_step : tuning_param_high
         tuning_param_name = tuning_param;
         for i in 1:niter
+            train, test = partition(train_ids_in, train_sample_fraction, shuffle = true)[1], partition(test_ids_in, test_sample_fraction, shuffle = true)[1];
             mach = MLJ.machine(mlj_model, x, y);
             MLJ.fit!(mach, rows = train, verbosity = 0);
             MLJ.save(save_trained_model_at * "/trained_model_" * string(i) * "_" * string(tuning_param) * ".jlso", mach, compression = :none);
