@@ -101,9 +101,9 @@ end
 function flux_mod_train_tt(flux_model,
     x :: DataFrame,
     y :: Vector,
+    save_trained_model_at :: String,
     train_ids_in,
     test_ids_in,
-    save_trained_model_at :: String,
     niter :: Int64 = 500,
     n_epochs :: Int64 = 200,
     nobs_per_batch :: Int64 = 1,
@@ -130,7 +130,6 @@ function flux_mod_train_tt(flux_model,
     rm(save_trained_model_at, force = true, recursive = true);
     mkdir(save_trained_model_at);
     for i in 1:niter
-        train, test = MLJ.partition(eachindex(y), train_size, shuffle = true);
         x_train = Matrix(x[train, :])';
         y_train = vec(y[train, :]);
         x_test = Matrix(x[test, :])';
