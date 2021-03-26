@@ -92,7 +92,16 @@ function mlj_mod_train_tt(mlj_model,
     for tuning_param in tuning_param_low : tuning_param_step : tuning_param_high
         tuning_param_name = tuning_param;
         for i in 1:niter
-            train, test = MLJ.partition(train_ids_in, train_sample_fraction, shuffle = true)[1], MLJ.partition(test_ids_in, test_sample_fraction, shuffle = true)[1];
+            if train_sample_fraction < 1.0
+                train = MLJ.partition(train_ids_in, train_sample_fraction, shuffle = true)[1]
+            else
+                train = train_ids_in
+            end
+            if test_sample_fraction < 1.0
+                test = MLJ.partition(test_ids_in, test_sample_fraction, shuffle = true)[1]
+            else
+                test = test_ids_in
+            end
             mach = MLJ.machine(mlj_model, x, y);
             MLJ.fit!(mach, rows = train, verbosity = 0);
             MLJ.save(save_trained_model_at * "/trained_model_" * string(i) * "_" * string(tuning_param) * ".jlso", mach, compression = :none);
