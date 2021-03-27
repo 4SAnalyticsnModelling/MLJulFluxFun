@@ -87,8 +87,6 @@ function flux_mod_train(flux_model,
         sort!(model_perform_df, :r2_flag, rev = true);
         if size(model_perform_df)[1] > 1
             rm(save_trained_model_at * "/trained_model_" * string(values(model_perform_df[2, :iter])) * ".bson");
-        else
-            continue
         end
         model_perform_df = DataFrame(model_perform_df[1, :]);
         model_predict_test_train = vcat(DataFrame(iter = i, idx = test, test_train_flag = "test", observed_data = y_test, predicted_data = y_pred), DataFrame(iter = i, idx = train, test_train_flag = "train", observed_data = y_train, predicted_data = y_pred_train));
@@ -191,8 +189,6 @@ function flux_mod_train_tt(flux_model,
         sort!(model_perform_df, :r2_flag, rev = true);
         if size(model_perform_df)[1] > 1
             rm(save_trained_model_at * "/trained_model_" * string(values(model_perform_df[2, :iter])) * ".bson");
-        else
-            continue
         end
         model_perform_df = DataFrame(model_perform_df[1, :]);
         model_predict_test_train = vcat(DataFrame(iter = i, idx = test, test_train_flag = "test", observed_data = y_test, predicted_data = y_pred), DataFrame(iter = i, idx = train, test_train_flag = "train", observed_data = y_train, predicted_data = y_pred_train));
