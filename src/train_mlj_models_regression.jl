@@ -2,7 +2,6 @@ using MLJ;
 using XGBoost;
 using DecisionTree;
 using DataFrames;
-using DataFramesMeta;
 using Statistics;
 # This function returns train, test ids, and save the best trained model for MLJ models when train test data are not pre-split
 function mlj_mod_train(mlj_model,
@@ -36,7 +35,8 @@ function mlj_mod_train(mlj_model,
             y_pred_train = MLJ.predict(mach, rows = train);
             y_train = vec(y[train, :]);
             y_test = vec(y[test, :]);
-            r2_train = round((Statistics.cor(y_train, y_pred_train))^2, digits = r_squared_precision);
+            r2_train = round((Statistics.cor(y_train, y_pred_train))^2, 
+                r_squared_precision);
             r2_test = round((Statistics.cor(y_test, y_pred))^2, digits = r_squared_precision);
             rmse_test = round(MLJ.rms(y_test, y_pred), digits = rmse_precision);
             rmse_train = round(MLJ.rms(y_train, y_pred_train), digits = rmse_precision);
