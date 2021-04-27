@@ -16,8 +16,8 @@ function mlj_mod_train(mlj_model,
     tuning_param_step :: Number,
     train_size :: Float64 = 0.75,
     niter :: Int64 = 500,
-    r_squared_precision :: Int64 = 3,
-    rmse_precision :: Int64 = 2)
+    r_squared_precision :: Number = 3,
+    rmse_precision :: Number = 2)
     rm(save_trained_model_at, force = true, recursive = true);
     mkdir(save_trained_model_at);
     model_perform_df = DataFrame();
@@ -35,8 +35,7 @@ function mlj_mod_train(mlj_model,
             y_pred_train = MLJ.predict(mach, rows = train);
             y_train = vec(y[train, :]);
             y_test = vec(y[test, :]);
-            r2_train = round((Statistics.cor(y_train, y_pred_train))^2, 
-                r_squared_precision);
+            r2_train = round((Statistics.cor(y_train, y_pred_train))^2, digits = r_squared_precision);
             r2_test = round((Statistics.cor(y_test, y_pred))^2, digits = r_squared_precision);
             rmse_test = round(MLJ.rms(y_test, y_pred), digits = rmse_precision);
             rmse_train = round(MLJ.rms(y_train, y_pred_train), digits = rmse_precision);
@@ -79,8 +78,8 @@ function mlj_mod_train_tt(mlj_model,
     train_sample_fraction :: Float64 = 1.0,
     test_sample_fraction :: Float64 = 1.0,
     niter :: Int64 = 500,
-    r_squared_precision :: Int64 = 3,
-    rmse_precision :: Int64 = 2)
+    r_squared_precision :: Number = 3,
+    rmse_precision :: Number = 2)
     rm(save_trained_model_at, force = true, recursive = true);
     mkdir(save_trained_model_at);
     model_perform_df = DataFrame();
