@@ -13,8 +13,8 @@ function flux_mod_train(flux_model,
     niter :: Int64 = 500,
     n_epochs :: Int64 = 200,
     nobs_per_batch :: Int64 = 1,
-    r_squared_precision :: Number = 3,
-    rmse_precision :: Number = 2,
+    r_squared_precision :: Int64 = 3,
+    rmse_precision :: Int64 = 2,
     loss_measure = Flux.Losses.mse,
     optimizer = Flux.Optimise.ADAM())
     model_perform_df = DataFrame();
@@ -106,8 +106,8 @@ function flux_mod_train_tt(flux_model,
     niter :: Int64 = 500,
     n_epochs :: Int64 = 200,
     nobs_per_batch :: Int64 = 1,
-    r_squared_precision :: Number = 3,
-    rmse_precision :: Number = 2,
+    r_squared_precision :: Int64 = 3,
+    rmse_precision :: Int64 = 2,
     loss_measure = Flux.Losses.mse,
     optimizer = Flux.Optimise.ADAM())
     model_perform_df = DataFrame();
