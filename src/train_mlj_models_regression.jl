@@ -8,7 +8,6 @@ function mlj_mod_train(mlj_model,
     x :: DataFrame,
     y :: Vector,
     save_trained_model_at :: String,
-    serial_file_ext :: String,
     tuning_param_name,
     tuning_param_label :: Symbol,
     tuning_param_low :: Number,
@@ -30,7 +29,7 @@ function mlj_mod_train(mlj_model,
             train, test = MLJ.partition(eachindex(y), train_size, shuffle = true);
             mach = MLJ.machine(mlj_model, x, y);
             MLJ.fit!(mach, rows = train, verbosity = 0);
-            MLJ.save(save_trained_model_at * "/trained_model_" * string(i) * "_" * string(tuning_param) * serial_file_ext, mach, compression = :none);
+            MLJ.save(save_trained_model_at * "/trained_model_" * string(i) * "_" * string(tuning_param) * ".jlso", mach, compression = :none);
             y_pred = MLJ.predict(mach, rows = test);
             y_pred_train = MLJ.predict(mach, rows = train);
             y_train = vec(y[train, :]);
@@ -50,8 +49,8 @@ function mlj_mod_train(mlj_model,
             sort!(model_perform_df, [:r_squared_test, :r_squared_train], rev = true);
             sort!(model_perform_df, :r2_flag, rev = true);
             if size(model_perform_df)[1] > 1
-                rm(save_trained_model_at * "/trained_model_" * string(values(model_perform_df[2, :iter])) * "_" * string(values(model_perform_df[2, tuning_param_label])) * serial_file_ext, force = true);
-                rm(save_trained_model_at * "/trained_model_" * string(values(model_perform_df[2, :iter])) * "_" * string(values(model_perform_df[2, tuning_param_label])) * "." * serial_file_ext, force = true);
+                rm(save_trained_model_at * "/trained_model_" * string(values(model_perform_df[2, :iter])) * "_" * string(values(model_perform_df[2, tuning_param_label])) * ".jlso", force = true);
+                rm(save_trained_model_at * "/trained_model_" * string(values(model_perform_df[2, :iter])) * "_" * string(values(model_perform_df[2, tuning_param_label])) * ".jlso", force = true);
             end
             model_perform_df = DataFrame(model_perform_df[1, :]);
             model_predict_test_train = vcat(DataFrame(iter = i, idx = test, test_train_flag = "test", observed_data = y_test, predicted_data = y_pred), DataFrame(iter = i, idx = train, test_train_flag = "train", observed_data = y_train, predicted_data = y_pred_train));
@@ -67,7 +66,6 @@ function mlj_mod_train_tt(mlj_model,
     x :: DataFrame,
     y :: Vector,
     save_trained_model_at :: String,
-    serial_file_ext :: String,
     tuning_param_name,
     tuning_param_label :: Symbol,
     tuning_param_low :: Number,
@@ -101,7 +99,7 @@ function mlj_mod_train_tt(mlj_model,
             end
             mach = MLJ.machine(mlj_model, x, y);
             MLJ.fit!(mach, rows = train, verbosity = 0);
-            MLJ.save(save_trained_model_at * "/trained_model_" * string(i) * "_" * string(tuning_param) * serial_file_ext, mach, compression = :none);
+            MLJ.save(save_trained_model_at * "/trained_model_" * string(i) * "_" * string(tuning_param) * ".jlso", mach, compression = :none);
             y_pred = MLJ.predict(mach, rows = test);
             y_pred_train = MLJ.predict(mach, rows = train);
             y_train = vec(y[train, :]);
@@ -121,8 +119,8 @@ function mlj_mod_train_tt(mlj_model,
             sort!(model_perform_df, [:r_squared_test, :r_squared_train], rev = true);
             sort!(model_perform_df, :r2_flag, rev = true);
             if size(model_perform_df)[1] > 1
-                rm(save_trained_model_at * "/trained_model_" * string(values(model_perform_df[2, :iter])) * "_" * string(values(model_perform_df[2, tuning_param_label])) * serial_file_ext, force = true);
-                rm(save_trained_model_at * "/trained_model_" * string(values(model_perform_df[2, :iter])) * "_" * string(values(model_perform_df[2, tuning_param_label])) * "." * serial_file_ext, force = true);
+                rm(save_trained_model_at * "/trained_model_" * string(values(model_perform_df[2, :iter])) * "_" * string(values(model_perform_df[2, tuning_param_label])) * ".jlso", force = true);
+                rm(save_trained_model_at * "/trained_model_" * string(values(model_perform_df[2, :iter])) * "_" * string(values(model_perform_df[2, tuning_param_label])) * ".jlso", force = true);
             end
             model_perform_df = DataFrame(model_perform_df[1, :]);
             model_predict_test_train = vcat(DataFrame(iter = i, idx = test, test_train_flag = "test", observed_data = y_test, predicted_data = y_pred), DataFrame(iter = i, idx = train, test_train_flag = "train", observed_data = y_train, predicted_data = y_pred_train));
