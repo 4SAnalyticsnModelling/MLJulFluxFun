@@ -16,8 +16,8 @@ function mlj_mod_train(mlj_model,
     tuning_param_step :: Number,
     train_size :: Float64 = 0.75,
     niter :: Int64 = 500,
-    r_squared_precision :: Number = 3,
-    rmse_precision :: Number = 2)
+    r_squared_precision :: Int64 = 3,
+    rmse_precision :: Int64 = 2)
     rm(save_trained_model_at, force = true, recursive = true);
     mkdir(save_trained_model_at);
     model_perform_df = DataFrame();
@@ -30,7 +30,7 @@ function mlj_mod_train(mlj_model,
             train, test = MLJ.partition(eachindex(y), train_size, shuffle = true);
             mach = MLJ.machine(mlj_model, x, y);
             MLJ.fit!(mach, rows = train, verbosity = 0);
-            MLJ.save(save_trained_model_at * "/trained_model_" * string(i) * "_" * string(tuning_param) * ".jlso", mach, compression = :none);
+            MLJ.save(save_trained_model_at * "/trained_model_" * string(i) * "_" * string(tuning_param) * serial_file_ext, mach, compression = :none);
             y_pred = MLJ.predict(mach, rows = test);
             y_pred_train = MLJ.predict(mach, rows = train);
             y_train = vec(y[train, :]);
@@ -50,7 +50,7 @@ function mlj_mod_train(mlj_model,
             sort!(model_perform_df, [:r_squared_test, :r_squared_train], rev = true);
             sort!(model_perform_df, :r2_flag, rev = true);
             if size(model_perform_df)[1] > 1
-                rm(save_trained_model_at * "/trained_model_" * string(values(model_perform_df[2, :iter])) * "_" * string(values(model_perform_df[2, tuning_param_label])) * ".jlso", force = true);
+                rm(save_trained_model_at * "/trained_model_" * string(values(model_perform_df[2, :iter])) * "_" * string(values(model_perform_df[2, tuning_param_label])) * serial_file_ext, force = true);
                 rm(save_trained_model_at * "/trained_model_" * string(values(model_perform_df[2, :iter])) * "_" * string(values(model_perform_df[2, tuning_param_label])) * "." * serial_file_ext, force = true);
             end
             model_perform_df = DataFrame(model_perform_df[1, :]);
@@ -78,8 +78,8 @@ function mlj_mod_train_tt(mlj_model,
     train_sample_fraction :: Float64 = 1.0,
     test_sample_fraction :: Float64 = 1.0,
     niter :: Int64 = 500,
-    r_squared_precision :: Number = 3,
-    rmse_precision :: Number = 2)
+    r_squared_precision :: Int64 = 3,
+    rmse_precision :: Int64 = 2)
     rm(save_trained_model_at, force = true, recursive = true);
     mkdir(save_trained_model_at);
     model_perform_df = DataFrame();
@@ -101,7 +101,7 @@ function mlj_mod_train_tt(mlj_model,
             end
             mach = MLJ.machine(mlj_model, x, y);
             MLJ.fit!(mach, rows = train, verbosity = 0);
-            MLJ.save(save_trained_model_at * "/trained_model_" * string(i) * "_" * string(tuning_param) * ".jlso", mach, compression = :none);
+            MLJ.save(save_trained_model_at * "/trained_model_" * string(i) * "_" * string(tuning_param) * serial_file_ext, mach, compression = :none);
             y_pred = MLJ.predict(mach, rows = test);
             y_pred_train = MLJ.predict(mach, rows = train);
             y_train = vec(y[train, :]);
@@ -121,7 +121,7 @@ function mlj_mod_train_tt(mlj_model,
             sort!(model_perform_df, [:r_squared_test, :r_squared_train], rev = true);
             sort!(model_perform_df, :r2_flag, rev = true);
             if size(model_perform_df)[1] > 1
-                rm(save_trained_model_at * "/trained_model_" * string(values(model_perform_df[2, :iter])) * "_" * string(values(model_perform_df[2, tuning_param_label])) * ".jlso", force = true);
+                rm(save_trained_model_at * "/trained_model_" * string(values(model_perform_df[2, :iter])) * "_" * string(values(model_perform_df[2, tuning_param_label])) * serial_file_ext, force = true);
                 rm(save_trained_model_at * "/trained_model_" * string(values(model_perform_df[2, :iter])) * "_" * string(values(model_perform_df[2, tuning_param_label])) * "." * serial_file_ext, force = true);
             end
             model_perform_df = DataFrame(model_perform_df[1, :]);
