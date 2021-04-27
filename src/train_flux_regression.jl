@@ -13,8 +13,8 @@ function flux_mod_train(flux_model,
     niter :: Int64 = 500,
     n_epochs :: Int64 = 200,
     nobs_per_batch :: Int64 = 1,
-    r_squared_precision :: Int64 = 3,
-    rmse_precision :: Int64 = 2,
+    r_squared_precision :: Number = 3,
+    rmse_precision :: Number = 2,
     loss_measure = Flux.Losses.mse,
     optimizer = Flux.Optimise.ADAM())
     model_perform_df = DataFrame();
@@ -67,12 +67,12 @@ function flux_mod_train(flux_model,
         end
         y_test = vec(y_test);
         y_pred = vec(flux_model(x_test));
-        r2_test = round((Statistics.cor(y_test, y_pred))^2, digits = 3);
-        rmse_test = round(MLJ.rms(y_test, y_pred), digits = 2);
+        r2_test = round((Statistics.cor(y_test, y_pred))^2, digits = r_squared_precision);
+        rmse_test = round(MLJ.rms(y_test, y_pred), digits = rmse_precision);
         y_train = vec(y_train);
         y_pred_train = vec(flux_model(x_train));
-        r2_train = round((Statistics.cor(y_train, y_pred_train))^2, digits = 3);
-        rmse_train = round(MLJ.rms(y_train, y_pred_train), digits = 2);
+        r2_train = round((Statistics.cor(y_train, y_pred_train))^2, digits = r_squared_precision);
+        rmse_train = round(MLJ.rms(y_train, y_pred_train), digits = rmse_precision);
         weights = Flux.params(flux_model);
         BSON.@save(save_trained_model_at * "/trained_model_" * string(i) * ".bson", weights);
         model_perform = DataFrame(iter = i, r_squared_test = r2_test, r_squared_train = r2_train, rmse_test = rmse_test, rmse_train = rmse_train);
@@ -106,8 +106,8 @@ function flux_mod_train_tt(flux_model,
     niter :: Int64 = 500,
     n_epochs :: Int64 = 200,
     nobs_per_batch :: Int64 = 1,
-    r_squared_precision :: Int64 = 3,
-    rmse_precision :: Int64 = 2,
+    r_squared_precision :: Number = 3,
+    rmse_precision :: Number = 2,
     loss_measure = Flux.Losses.mse,
     optimizer = Flux.Optimise.ADAM())
     model_perform_df = DataFrame();
@@ -169,12 +169,12 @@ function flux_mod_train_tt(flux_model,
         end
         y_test = vec(y_test);
         y_pred = vec(flux_model(x_test));
-        r2_test = round((Statistics.cor(y_test, y_pred))^2, digits = 3);
-        rmse_test = round(MLJ.rms(y_test, y_pred), digits = 2);
+        r2_test = round((Statistics.cor(y_test, y_pred))^2, digits = r_squared_precision);
+        rmse_test = round(MLJ.rms(y_test, y_pred), digits = rmse_precision);
         y_train = vec(y_train);
         y_pred_train = vec(flux_model(x_train));
-        r2_train = round((Statistics.cor(y_train, y_pred_train))^2, digits = 3);
-        rmse_train = round(MLJ.rms(y_train, y_pred_train), digits = 2);
+        r2_train = round((Statistics.cor(y_train, y_pred_train))^2, digits = r_squared_precision);
+        rmse_train = round(MLJ.rms(y_train, y_pred_train), digits = rmse_precision);
         weights = Flux.params(flux_model);
         BSON.@save(save_trained_model_at * "/trained_model_" * string(i) * ".bson", weights);
         model_perform = DataFrame(iter = i, r_squared_test = r2_test, r_squared_train = r2_train, rmse_test = rmse_test, rmse_train = rmse_train);
