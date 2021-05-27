@@ -73,7 +73,7 @@ function flux_mod_train(flux_model,
         y_pred_train = vec(flux_model(x_train));
         r2_train = round((Statistics.cor(y_train, y_pred_train))^2, digits = r_squared_precision);
         rmse_train = round(MLJ.rms(y_train, y_pred_train), digits = rmse_precision);
-        weights = Flux.params(flux_model);
+        weights = Flux.params(Flux.cpu(flux_model));
         BSON.@save(save_trained_model_at * "/trained_model_" * string(i) * ".bson", weights);
         model_perform = DataFrame(iter = i, r_squared_test = r2_test, r_squared_train = r2_train, rmse_test = rmse_test, rmse_train = rmse_train);
         model_perform[!, :r2_flag] .= ifelse.(isnan.(model_perform[!, :r_squared_test]) .& isnan.(model_perform[!, :r_squared_train]), -3,
@@ -175,7 +175,7 @@ function flux_mod_train_tt(flux_model,
         y_pred_train = vec(flux_model(x_train));
         r2_train = round((Statistics.cor(y_train, y_pred_train))^2, digits = r_squared_precision);
         rmse_train = round(MLJ.rms(y_train, y_pred_train), digits = rmse_precision);
-        weights = Flux.params(flux_model);
+        weights = Flux.params(Flux.cpu(flux_model));
         BSON.@save(save_trained_model_at * "/trained_model_" * string(i) * ".bson", weights);
         model_perform = DataFrame(iter = i, r_squared_test = r2_test, r_squared_train = r2_train, rmse_test = rmse_test, rmse_train = rmse_train);
         model_perform[!, :r2_flag] .= ifelse.(isnan.(model_perform[!, :r_squared_test]) .& isnan.(model_perform[!, :r_squared_train]), -3,
