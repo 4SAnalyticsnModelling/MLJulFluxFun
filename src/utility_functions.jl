@@ -1,4 +1,4 @@
-# Utility and wrapper functions to be used in training models
+# Utility and wrapper functions to be used in training and evaluating models
 using Flux;
 using Flux.Zygote;
 # Root mean squared error
