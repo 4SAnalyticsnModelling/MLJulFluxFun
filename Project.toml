@@ -2,6 +2,7 @@ name = "MLJulFluxFun"
 uuid = "ad295cbf-2088-581f-89bf-79eb1143e401"
 repo = "https://github.com/4SAnalyticsnModelling/MLJulFluxFun.jl.git"
 authors = ["Symon@4SAnalyticsnModelling"]
+email = ["4sanalyticsnmodelling@gmail.com"]
 
 [deps]
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
