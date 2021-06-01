@@ -1,4 +1,4 @@
-# Functions to be used in MLJulFluxFun.jl
+# Utility and wrapper functions to be used in MLJulFluxFun.jl
 using Flux;
 using Flux.Zygote;
 # Root mean squared error
