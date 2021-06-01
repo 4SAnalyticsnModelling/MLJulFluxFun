@@ -1,5 +1,5 @@
 # Different cross-validation techniques
-using Random
+using Random;
 # Holdout
 function Holdout(ids :: Any, train_frac :: Float64, shuffle_id :: Bool = false)
     ids_mat = collect(ids)
