@@ -1,7 +1,7 @@
 # Different cross-validation techniques
 using Random
 # Holdout
-function Holdout(ids, train_frac :: Float64, shuffle_id :: Bool = false)
+function Holdout(ids :: Any, train_frac :: Float64, shuffle_id :: Bool = false)
     ids_mat = collect(ids)
     if shuffle_id
         Random.shuffle!(ids_mat)
@@ -11,7 +11,7 @@ function Holdout(ids, train_frac :: Float64, shuffle_id :: Bool = false)
     return train_test_pairs
 end
 # KFold
-function KFold(ids, k :: Int64, shuffle_id ::Bool = false)
+function KFold(ids :: Any, k :: Int64, shuffle_id ::Bool = false)
     ids_mat = collect(ids)
     if shuffle_id
         Random.shuffle!(ids_mat)
@@ -25,7 +25,7 @@ function KFold(ids, k :: Int64, shuffle_id ::Bool = false)
     return train_test_pairs
 end
 # Grouped KFold      
-function GroupedKFold(ids, group_list)
+function GroupedKFold(ids :: Any, group_list :: Any)
     paired_mat = [collect(ids) collect(group_list)]
     train_test_pairs = []
     for groups in unique(group_list)
