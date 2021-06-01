@@ -3,7 +3,8 @@ using XGBoost;
 using DecisionTree;
 using DataFrames;
 using Statistics;
-# This function returns train, test ids, and save the best trained model for MLJ models when train test data are not pre-split
+# This function evaluates flux models based on user defined resampling strategies;
+# cv_strategy = Cross-validation strategy (nothing means no cross-validation; all data are used in training the model)
 function mlj_mod_eval(mlj_model,
     x :: DataFrame,
     y :: Vector,
