@@ -1,5 +1,6 @@
 # Different cross-validation techniques
 using Random;
+# Holdout
 function Holdout(ids :: T, train_frac :: Float64, shuffle_id :: Bool = false, nsample :: Int64 = 1) where {T <: Union{UnitRange{Int64}, StepRange{Int64, Int64}, Base.OneTo{Int64}, Vector{Int64}}}
     train_test_pairs = []
     ids_mat = collect(ids)
