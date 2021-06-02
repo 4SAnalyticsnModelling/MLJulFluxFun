@@ -15,6 +15,8 @@ function mlj_mod_eval(mlj_model,
     cv_strategy :: Any = nothing,
     r_squared_precision :: Int64 = 3,
     rmse_precision :: Int64 = 2) where {T <: Union{StepRange{Int64, Int64}, StepRangeLen{Float64, Base.TwicePrecision{Float64}, Base.TwicePrecision{Float64}}}}
+    model_perform_t = Array{Float64}(undef, 0, 3);
+    model_perform_mat_t = Array{Float64}(undef, 0, 3);
     model_perform = Array{Float64}(undef, 0, 6);
     model_perform_mat = Array{Float64}(undef, 0, 6);
     model_perform_df = DataFrame();
@@ -31,13 +33,17 @@ function mlj_mod_eval(mlj_model,
             r2_train = round((Statistics.cor(y_train, y_pred_train))^2, digits = r_squared_precision);
             rmse_train = round(rmse(y_train, y_pred_train), digits = rmse_precision);
             MLJ.save(save_trained_model_at * "/trained_model.jlso", mach, compression = :none);
-            model_perform = [tuning_param r2_train rmse_train];
-            model_perform_df = DataFrame(model_perform[1, :]', [tuning_param_label, :r_squared_train, :rmse_train]);
+            model_perform_t = [tuning_param r2_train rmse_train];
             if tuning_param == tuning_param_rng[1]
-                CSV.write(save_trained_model_at * "/model_training_records.csv", model_perform_df);
+                CSV.write(save_trained_model_at * "/model_training_records.csv", DataFrame(model_perform_t, [tuning_param_label, :r_squared_train, :rmse_train]));
             else
-                CSV.write(save_trained_model_at * "/model_training_records.csv", model_perform_df, append = true);
+                CSV.write(save_trained_model_at * "/model_training_records.csv", DataFrame(model_perform_t, [tuning_param_label, :r_squared_train, :rmse_train]), append = true);
             end
+            model_perform_mat_t = vcat(model_perform_mat_t, model_perform_t)
+            model_perform_mat_t = sortslices(model_perform_mat_t, dims = 1, by = x -> x[3], rev = false);
+            model_perform_mat_t = sortslices(model_perform_mat_t, dims = 1, by = x -> x[2], rev = true);
+            model_perform_mat_t = model_perform_mat_t[1, :]'
+            model_perform_df = DataFrame(model_perform_mat_t, [tuning_param_label, :r_squared_train, :rmse_train]);
         else
             for k in 1:size(cv_strategy)[1]
                 train, test = cv_strategy[k, ];
