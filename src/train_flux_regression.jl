@@ -39,7 +39,7 @@ function flux_mod_eval(flux_model,
         BSON.@save(save_trained_model_at * "/trained_model.bson", weights);
         model_perform = [r2_train rmse_train];
         model_perform_df = DataFrame(model_perform[1, :]', [:r_squared_train, :rmse_train]);
-        CSV.write(save_trained_model_at * "/model_training_records.csv", model_perform_df, append = true);
+        CSV.write(save_trained_model_at * "/model_training_records.csv", model_perform_df);
     else
         for k in 1:size(cv_strategy)[1]
             train, test = cv_strategy[k, ];
@@ -76,7 +76,11 @@ function flux_mod_eval(flux_model,
             r2_train = round((Statistics.cor(y_train, y_pred_train))^2, digits = r_squared_precision);
             rmse_train = round(rmse(y_train, y_pred_train), digits = rmse_precision);
             model_perform = [k r2_test r2_train rmse_test rmse_train];
-            CSV.write(save_trained_model_at * "/model_training_records.csv", DataFrame(model_perform, [:iter, :r_squared_test, :r_squared_train, :rmse_test, :rmse_train]), append = true);
+            if (k == 1)
+                CSV.write(save_trained_model_at * "/model_training_records.csv", DataFrame(model_perform, [:iter, :r_squared_test, :r_squared_train, :rmse_test, :rmse_train]));
+            else
+                CSV.write(save_trained_model_at * "/model_training_records.csv", DataFrame(model_perform, [:iter, :r_squared_test, :r_squared_train, :rmse_test, :rmse_train]), append = true);
+            end
             model_perform_mat = vcat(model_perform_mat, model_perform)
             model_perform_mat = sortslices(model_perform_mat, dims = 1, by = x -> (x[4], x[5]), rev = false);
             model_perform_mat = sortslices(model_perform_mat, dims = 1, by = x -> (x[2], x[3]), rev = true);
