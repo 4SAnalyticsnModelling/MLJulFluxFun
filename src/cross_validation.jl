@@ -1,6 +1,5 @@
 # Different cross-validation techniques
 using Random;
-# Holdout
 function Holdout(ids :: T, train_frac :: Float64, shuffle_id :: Bool = false, nsample :: Int64 = 1) where {T <: Union{UnitRange{Int64}, StepRange{Int64, Int64}, Base.OneTo{Int64}, Vector{Int64}}}
     train_test_pairs = []
     ids_mat = collect(ids)
@@ -13,7 +12,6 @@ function Holdout(ids :: T, train_frac :: Float64, shuffle_id :: Bool = false, ns
         train_test_pairs = vcat(train_test_pairs, train_test)
     end
     return train_test_pairs
-end
 end
 # KFold
 function KFold(ids :: T, k :: Int64, shuffle_id ::Bool = false, nsample :: Int64 = 1) where {T <: Union{UnitRange{Int64}, StepRange{Int64, Int64}, Base.OneTo{Int64}, Vector{Int64}}}
@@ -32,12 +30,12 @@ function KFold(ids :: T, k :: Int64, shuffle_id ::Bool = false, nsample :: Int64
     return train_test_pairs
 end
 # Grouped KFold
-function GroupedKFold(ids :: T, group_list :: S) where {T <: Union{UnitRange{Int64}, StepRange{Int64, Int64}, Base.OneTo{Int64}, Vector{Int64}}, S <: Union{Vector{Union{String, Missing, Int64}}}}
+function GroupedKFold(ids :: T, group_list :: S) where {T <: Union{UnitRange{Int64}, StepRange{Int64, Int64}, Base.OneTo{Int64}, Vector{Int64}}, S <: Union{Vector{String}, Vector{Int64}}}
     paired_mat = [collect(ids) collect(group_list)]
     train_test_pairs = []
     for groups in unique(group_list)
-        train_test = (paired_mat[paired_mat[:, 2] .!= groups, 1], paired_mat[paired_mat[:, 2] .== groups, 1])
-        push!(train_test_pairs, train_test)
+        train_test = (convert.(Int64, paired_mat[paired_mat[:, 2] .!= groups, 1]), convert.(Int64, paired_mat[paired_mat[:, 2] .== groups, 1]))
+        train_test_pairs = vcat(train_test_pairs, train_test)
     end
     return train_test_pairs
 end
