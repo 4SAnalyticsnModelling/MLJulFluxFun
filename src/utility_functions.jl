@@ -4,7 +4,12 @@ using Flux;
 function rmse(obs :: T, pred :: S) where {T <: Union{UnitRange{Int64}, StepRange{Int64, Int64}, Base.OneTo{Int64}, Vector{Int64}, UnitRange{Float64}, StepRange{Float64, Float64}, Vector{Float64}, Vector{Float32}, Vector{Number}}, S <: Union{UnitRange{Int64}, StepRange{Int64, Int64}, Base.OneTo{Int64}, Vector{Int64}, UnitRange{Float64}, StepRange{Float64, Float64}, Vector{Float64}, Vector{Float32}, Vector{Number}}}
     return sqrt(sum((collect(obs) .- collect(pred)).^2)/length(collect(obs)))
 end
-
+# Willmott's index of model agreement (d)
+function willmott_d(obs, sim)
+    obs = convert.(Float64, collect(obs))
+    sim = convert.(Float64, collect(sim))
+    return 1.0 - sum(obs .- sim)^2 / sum(abs.(sim .- mean(obs)) .+ abs.(obs .- mean(obs)))^2
+end
 # Loss function for Flux models
 function loss(flux_model, x, y)
     return sqrt(sum((vec(y) .- vec(flux_model(x))).^2)/length(vec(y)))
