@@ -67,8 +67,6 @@ function flux_mod_eval(flux_model,
                         finally
                         end
                     break
-#                     else
-#                         continue
                     end
                 end
             end
