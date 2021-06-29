@@ -11,6 +11,7 @@ function flux_mod_eval(flux_model,
     save_trained_model_at :: String,
     cv_strategy :: Any = nothing,
     n_epochs :: Int64 = 200,
+    lcheck :: Int64 = 10,
     nobs_per_batch :: Int64 = 1,
     r_squared_precision :: Int64 = 3,
     rmse_precision :: Int64 = 2,
@@ -25,10 +26,8 @@ function flux_mod_eval(flux_model,
         x_train = Matrix(x[train, :])';
         y_train = vec(y[train, :]);
         data = Flux.Data.DataLoader((x_train, y_train), shuffle = true, batchsize = nobs_per_batch);
-        train_loss_record = [];
         for j in 1:n_epochs
             my_custom_train!(flux_model, loss, data, optimizer);
-            push!(train_loss_record, loss(flux_model, x_train, y_train));
             println("epoch = " * string(j) * "; training_loss = " * string(loss(flux_model, x_train, y_train)))
         end
         y_train = vec(y_train);
@@ -48,23 +47,29 @@ function flux_mod_eval(flux_model,
             x_test = Matrix(x[test, :])';
             y_test = vec(y[test, :]);
             data = Flux.Data.DataLoader((x_train, y_train), shuffle = true, batchsize = nobs_per_batch);
-            validation_loss_record = [];
             for j in 1:n_epochs
                 my_custom_train!(flux_model, loss, data, optimizer);
                 valid_loss = loss(flux_model, x_test, y_test);
                 println("epoch = " * string(j) * "; validation_loss = " * string(valid_loss))
-                push!(validation_loss_record, valid_loss);
                 flux_model1 = flux_model;
                 my_custom_train!(flux_model1, loss, data, optimizer);
-                if loss(flux_model1, x_test, y_test) > validation_loss_record[j]
-                    try
-                        Flux.stop()
-                    catch
-                    finally
+                if valid_loss < loss(flux_model1, x_test, y_test)
+                    valid_loss_record = [];
+                    flux_model2 = flux_model1
+                    for l in 1:(lcheck - 1)
+                        my_custom_train!(flux_model2, loss, data, optimizer);
+                        push!(valid_loss_record, loss(flux_model2, x_test, y_test))
                     end
+                    if sum(valid_loss .< valid_loss_record) == (lcheck - 1)
+                        try
+                            Flux.stop()
+                        catch
+                        finally
+                        end
                     break
-                else
-                    continue
+                    else
+                        continue
+                    end
                 end
             end
             y_test = vec(y_test);
