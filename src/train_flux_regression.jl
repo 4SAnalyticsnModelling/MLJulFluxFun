@@ -78,9 +78,8 @@ function flux_mod_eval(flux_model,
                         end
                     break
                     end
-                push!(epoch_collect, j)
                 end
-            push!(epoch_collect_max, extrema(epoch_collect)[2])
+            push!(epoch_collect, j)
             end
             y_test = vec(y_test)
             y_pred = vec(flux_model1(x_test))
@@ -101,6 +100,7 @@ function flux_mod_eval(flux_model,
             model_perform_mat = sortslices(model_perform_mat, dims = 1, by = x -> (x[2], x[3]), rev = true)
             model_perform_mat = model_perform_mat[1, :]'
             model_perform_df = DataFrame(model_perform_mat, [:iter, :r_squared_test, :r_squared_train, :rmse_test, :rmse_train])
+        push!(epoch_collect_max, extrema(epoch_collect)[2])            
         end
     end
     return model_perform_df :: DataFrame, epoch_collect_max
