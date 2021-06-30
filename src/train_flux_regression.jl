@@ -72,13 +72,13 @@ function flux_mod_eval(flux_model,
                     if (sum(valid_loss .< valid_loss_record) == (lcheck - 1)) & (sum(valid_r2 .> valid_r2_record) == (lcheck - 1))
                         try
                             Flux.stop()
-                            push!(epoch_collect, j)
                         catch
                         finally
                         end
                     break
                     end
                 end
+            push!(epoch_collect, j)
             end
             y_test = vec(y_test)
             y_pred = vec(flux_model1(x_test))
