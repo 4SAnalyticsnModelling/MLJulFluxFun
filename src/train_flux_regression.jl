@@ -100,7 +100,7 @@ function flux_mod_eval(flux_model,
             model_perform_mat = sortslices(model_perform_mat, dims = 1, by = x -> (x[2], x[3]), rev = true)
             model_perform_mat = model_perform_mat[1, :]'
             model_perform_df = DataFrame(model_perform_mat, [:iter, :r_squared_test, :r_squared_train, :rmse_test, :rmse_train])
-        push!(epoch_collect_max, j)            
+        push!(epoch_collect_max, j0)            
         end
     end
     return model_perform_df :: DataFrame, epoch_collect_max
