@@ -41,25 +41,25 @@ function flux_mod_eval(flux_model,
         CSV.write(save_trained_model_at * "/model_training_records.csv", model_perform_df)
     else
         for k in 1:size(cv_strategy)[1]
-            map(x -> x .= Base.randn.(), Flux.params(flux_model))
+            flux_model1 = flux_model
             train, test = cv_strategy[k, ]
             x_train = Matrix(x[train, :])'
             y_train = vec(y[train, :])
             x_test = Matrix(x[test, :])'
             y_test = vec(y[test, :])
             data = Flux.Data.DataLoader((x_train, y_train), shuffle = true, batchsize = nobs_per_batch)
-            for j in 1:n_epochs
-                my_custom_train!(flux_model, loss, data, optimizer)
-                valid_loss = loss(flux_model, x_test, y_test)
-                println("epoch = " * string(j) * " validation_loss = " * string(valid_loss))
-                flux_model1 = flux_model
+            for j in 1:(n_epochs - lcheck)
                 my_custom_train!(flux_model1, loss, data, optimizer)
-                if valid_loss < loss(flux_model1, x_test, y_test)
+                valid_loss = loss(flux_model1, x_test, y_test)
+                println("epoch = " * string(j) * " validation_loss = " * string(valid_loss))
+                flux_model2 = flux_model1
+                my_custom_train!(flux_model2, loss, data, optimizer)
+                if valid_loss < loss(flux_model2, x_test, y_test)
                     valid_loss_record = []
-                    flux_model2 = flux_model1
+                    flux_model3 = flux_model2
                     for l in 1:(lcheck - 1)
-                        my_custom_train!(flux_model2, loss, data, optimizer)
-                        push!(valid_loss_record, loss(flux_model2, x_test, y_test))
+                        my_custom_train!(flux_model3, loss, data, optimizer)
+                        push!(valid_loss_record, loss(flux_model3, x_test, y_test))
                     end
                     if sum(valid_loss .< valid_loss_record) == (lcheck - 1)
                         try
@@ -72,11 +72,11 @@ function flux_mod_eval(flux_model,
                 end
             end
             y_test = vec(y_test)
-            y_pred = vec(flux_model(x_test))
+            y_pred = vec(flux_model1(x_test))
             r2_test = round((Statistics.cor(y_test, y_pred))^2, digits = r_squared_precision)
             rmse_test = round(rmse(y_test, y_pred), digits = rmse_precision)
             y_train = vec(y_train)
-            y_pred_train = vec(flux_model(x_train))
+            y_pred_train = vec(flux_model1(x_train))
             r2_train = round((Statistics.cor(y_train, y_pred_train))^2, digits = r_squared_precision)
             rmse_train = round(rmse(y_train, y_pred_train), digits = rmse_precision)
             model_perform = [k r2_test r2_train rmse_test rmse_train]
