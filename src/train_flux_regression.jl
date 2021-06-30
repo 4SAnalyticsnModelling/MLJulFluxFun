@@ -40,6 +40,7 @@ function flux_mod_eval(flux_model,
         model_perform_df = DataFrame(model_perform[1, :]', [:r_squared_train, :rmse_train])
         CSV.write(save_trained_model_at * "/model_training_records.csv", model_perform_df)
     else
+        epoch_collect = [];
         for k in 1:size(cv_strategy)[1]
             flux_model1 = flux_model
             train, test = cv_strategy[k, ]
@@ -48,22 +49,30 @@ function flux_mod_eval(flux_model,
             x_test = Matrix(x[test, :])'
             y_test = vec(y[test, :])
             data = Flux.Data.DataLoader((x_train, y_train), shuffle = true, batchsize = nobs_per_batch)
-            for j in 1:(n_epochs - lcheck)
+            for j in 1:n_epochs
                 my_custom_train!(flux_model1, loss, data, optimizer)
                 valid_loss = loss(flux_model1, x_test, y_test)
-                println("epoch = " * string(j) * " validation_loss = " * string(valid_loss))
+                valid_r2 = round(Statistics.cor(y_test, vec(flux_model1(x_test)))^2.0, digits = r_squared_precision)
+                println("epoch = " * string(j) * " validation_loss = " * string(valid_loss) * " validation_r2 = " * string(valid_r2))
                 flux_model2 = flux_model1
                 my_custom_train!(flux_model2, loss, data, optimizer)
-                if valid_loss < loss(flux_model2, x_test, y_test)
+                valid_loss_1 = loss(flux_model2, x_test, y_test)
+                valid_r2_1 = round(Statistics.cor(y_test, vec(flux_model2(x_test)))^2.0, digits = r_squared_precision)
+                if (valid_loss < valid_loss_1) & (valid_r2 > valid_r2_1)
                     valid_loss_record = []
+                    valid_r2_record = []
                     flux_model3 = flux_model2
                     for l in 1:(lcheck - 1)
                         my_custom_train!(flux_model3, loss, data, optimizer)
-                        push!(valid_loss_record, loss(flux_model3, x_test, y_test))
+                        valid_loss_2 = loss(flux_model3, x_test, y_test)
+                        valid_r2_2 = round(Statistics.cor(y_test, vec(flux_model3(x_test)))^2.0, digits = r_squared_precision)
+                        push!(valid_loss_record, valid_loss_2)
+                        push!(valid_r2_record, valid_r2_2)
                     end
-                    if sum(valid_loss .< valid_loss_record) == (lcheck - 1)
+                    if (sum(valid_loss .< valid_loss_record) == (lcheck - 1)) & (sum(valid_r2 .> valid_r2_record) == (lcheck - 1))
                         try
                             Flux.stop()
+                            push!(epoch_collect, j)
                         catch
                         finally
                         end
@@ -92,5 +101,5 @@ function flux_mod_eval(flux_model,
             model_perform_df = DataFrame(model_perform_mat, [:iter, :r_squared_test, :r_squared_train, :rmse_test, :rmse_train])
         end
     end
-    return model_perform_df :: DataFrame
+    return model_perform_df :: DataFrame, epoch_collect
 end
