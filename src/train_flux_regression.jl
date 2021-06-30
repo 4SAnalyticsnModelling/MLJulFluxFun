@@ -40,7 +40,7 @@ function flux_mod_eval(flux_model,
         model_perform_df = DataFrame(model_perform[1, :]', [:r_squared_train, :rmse_train])
         CSV.write(save_trained_model_at * "/model_training_records.csv", model_perform_df)
     else
-        epoch_collect = [];
+        epoch_collect_max = []
         for k in 1:size(cv_strategy)[1]
             flux_model1 = flux_model
             train, test = cv_strategy[k, ]
@@ -49,6 +49,7 @@ function flux_mod_eval(flux_model,
             x_test = Matrix(x[test, :])'
             y_test = vec(y[test, :])
             data = Flux.Data.DataLoader((x_train, y_train), shuffle = true, batchsize = nobs_per_batch)
+            epoch_collect = []
             for j in 1:n_epochs
                 my_custom_train!(flux_model1, loss, data, optimizer)
                 valid_loss = loss(flux_model1, x_test, y_test)
@@ -79,6 +80,7 @@ function flux_mod_eval(flux_model,
                     end
                 end
             push!(epoch_collect, j)
+            push!(epoch_collect_max, extrema(epoch_collect)[2])
             end
             y_test = vec(y_test)
             y_pred = vec(flux_model1(x_test))
@@ -101,5 +103,5 @@ function flux_mod_eval(flux_model,
             model_perform_df = DataFrame(model_perform_mat, [:iter, :r_squared_test, :r_squared_train, :rmse_test, :rmse_train])
         end
     end
-    return model_perform_df :: DataFrame, epoch_collect
+    return model_perform_df :: DataFrame, epoch_collect_max
 end
