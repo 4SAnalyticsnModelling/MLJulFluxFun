@@ -49,6 +49,7 @@ function flux_mod_eval(flux_model,
             x_test = Matrix(x[test, :])'
             y_test = vec(y[test, :])
             data = Flux.Data.DataLoader((x_train, y_train), shuffle = true, batchsize = nobs_per_batch)
+            j0 = 0
             for j in 1:n_epochs
                 my_custom_train!(flux_model1, loss, data, optimizer)
                 valid_loss = loss(flux_model1, x_test, y_test)
@@ -78,6 +79,7 @@ function flux_mod_eval(flux_model,
                     break
                     end
                 end
+            j0 = j
             end
             y_test = vec(y_test)
             y_pred = vec(flux_model1(x_test))
