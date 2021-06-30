@@ -78,8 +78,8 @@ function flux_mod_eval(flux_model,
                         end
                     break
                     end
+                push!(epoch_collect, j)
                 end
-            push!(epoch_collect, j)
             push!(epoch_collect_max, extrema(epoch_collect)[2])
             end
             y_test = vec(y_test)
