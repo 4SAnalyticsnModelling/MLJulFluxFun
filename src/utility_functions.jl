@@ -1,5 +1,6 @@
 # Utility and wrapper functions to be used in training and evaluating models
-using Flux;
+using Flux
+using Flux.Zygote
 # Root mean squared error
 function rmse(obs :: T, pred :: S) where {T <: Union{UnitRange{Int64}, StepRange{Int64, Int64}, Base.OneTo{Int64}, Vector{Int64}, UnitRange{Float64}, StepRange{Float64, Float64}, Vector{Float64}, Vector{Float32}, Vector{Number}}, S <: Union{UnitRange{Int64}, StepRange{Int64, Int64}, Base.OneTo{Int64}, Vector{Int64}, UnitRange{Float64}, StepRange{Float64, Float64}, Vector{Float64}, Vector{Float32}, Vector{Number}}}
     obs = convert.(Float64, collect(obs))
@@ -20,9 +21,8 @@ end
 function my_custom_train!(flux_model, loss, data, optimizer)
     ps = Flux.params(flux_model)
     for d in data
-      gs = Flux.gradient(ps) do
-        training_loss = loss(flux_model, d...)
-      end
-      Flux.update!(optimizer, ps, gs)
+        train_loss, back = Zygote.pullback(() -> loss(flux_model, d...), ps)
+        gs = back(one(train_loss))
+        Flux.update!(optimizer, ps, gs)
     end
  end
