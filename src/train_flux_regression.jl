@@ -22,6 +22,7 @@ function flux_mod_eval(flux_model,
     rm(save_trained_model_at, force = true, recursive = true)
     mkdir(save_trained_model_at)
     if isnothing(cv_strategy)
+        epoch_collect_max = []
         train = eachindex(y)
         x_train = Matrix(x[train, :])'
         y_train = vec(y[train, :])
