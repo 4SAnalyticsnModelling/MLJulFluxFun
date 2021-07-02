@@ -31,7 +31,7 @@ function mlj_mod_eval(mlj_model,
             y_train = vec(y[train, :]);
             y_pred_train = vec(MLJ.predict(mach, rows = train));
             r2_train = round((Statistics.cor(y_train, y_pred_train))^2, digits = r_squared_precision);
-            rmse_train = round(rmse(y_train, y_pred_train), digits = rmse_precision);
+            rmse_train = round(rmse_(y_train, y_pred_train), digits = rmse_precision);
             MLJ.save(save_trained_model_at * "/trained_model.jlso", mach, compression = :none);
             model_perform_t = [tuning_param r2_train rmse_train];
             if tuning_param == tuning_param_rng[1]
@@ -52,11 +52,11 @@ function mlj_mod_eval(mlj_model,
                 y_test = vec(y[test, :]);
                 y_pred = vec(MLJ.predict(mach, rows = test));
                 r2_test = round((Statistics.cor(y_test, y_pred))^2, digits = r_squared_precision);
-                rmse_test = round(rmse(y_test, y_pred), digits = rmse_precision);
+                rmse_test = round(rmse_(y_test, y_pred), digits = rmse_precision);
                 y_train = vec(y[train, :]);
                 y_pred_train = vec(MLJ.predict(mach, rows = train));
                 r2_train = round((Statistics.cor(y_train, y_pred_train))^2, digits = r_squared_precision);
-                rmse_train = round(rmse(y_train, y_pred_train), digits = rmse_precision);
+                rmse_train = round(rmse_(y_train, y_pred_train), digits = rmse_precision);
                 model_perform = [k tuning_param r2_test r2_train rmse_test rmse_train];
                 if (tuning_param == tuning_param_rng[1]) & (k == 1)
                     CSV.write(save_trained_model_at * "/model_training_records.csv", DataFrame(model_perform, [:iter, tuning_param_label, :r_squared_test, :r_squared_train, :rmse_test, :rmse_train]));
