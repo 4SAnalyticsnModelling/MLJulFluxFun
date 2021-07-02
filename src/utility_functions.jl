@@ -2,7 +2,7 @@
 using Flux
 using Flux.Zygote
 # Root mean squared error
-function rmse(obs :: T, pred :: S) where {T <: Union{UnitRange{Int64}, StepRange{Int64, Int64}, Base.OneTo{Int64}, Vector{Int64}, UnitRange{Float64}, StepRange{Float64, Float64}, Vector{Float64}, Vector{Float32}, Vector{Number}}, S <: Union{UnitRange{Int64}, StepRange{Int64, Int64}, Base.OneTo{Int64}, Vector{Int64}, UnitRange{Float64}, StepRange{Float64, Float64}, Vector{Float64}, Vector{Float32}, Vector{Number}}}
+function rmse_(obs :: T, pred :: S) where {T <: Union{UnitRange{Int64}, StepRange{Int64, Int64}, Base.OneTo{Int64}, Vector{Int64}, UnitRange{Float64}, StepRange{Float64, Float64}, Vector{Float64}, Vector{Float32}, Vector{Number}}, S <: Union{UnitRange{Int64}, StepRange{Int64, Int64}, Base.OneTo{Int64}, Vector{Int64}, UnitRange{Float64}, StepRange{Float64, Float64}, Vector{Float64}, Vector{Float32}, Vector{Number}}}
     obs = convert.(Float64, collect(obs))
     pred = convert.(Float64, collect(pred))
     return sqrt(sum((obs .- pred).^2)/length(obs))
@@ -15,7 +15,7 @@ function willmott_d(obs :: T, pred :: S) where {T <: Union{UnitRange{Int64}, Ste
 end
 # Loss function for Flux models
 function loss(flux_model, x, y)
-    return sqrt(sum((vec(y) .- vec(flux_model(x))).^2)/length(vec(y)))
+    return rmse_(vec(y), vec(flux_model(x)))^2
 end
 # Custom training function for Flux models
 function my_custom_train!(flux_model, loss, data, optimizer)
