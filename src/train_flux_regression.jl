@@ -45,7 +45,9 @@ function flux_mod_eval(flux_model,
         epoch_collect_max = []
         j0 = 0
         for k in 1:size(cv_strategy)[1]
+            ps_init = Flux.params(flux_model)
             flux_model1 = flux_model
+            Flux.loadparams!(flux_model1, ps_init);
             train, test = cv_strategy[k, ]
             x_train = Matrix(x[train, :])'
             y_train = vec(y[train, :])
