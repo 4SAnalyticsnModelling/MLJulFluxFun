@@ -110,5 +110,4 @@ function flux_mod_eval(flux_model,
         end
     end
     return model_perform_df :: DataFrame #, epoch_collect_max
-    end
 end
