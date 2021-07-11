@@ -22,6 +22,7 @@ function flux_mod_eval(flux_model,
     model_perform_df = DataFrame()
     rm(save_trained_model_at, force = true, recursive = true)
     mkdir(save_trained_model_at)
+    ps_init = Flux.params(flux_model)
     if isnothing(cv_strategy)
         epoch_collect_max = []
         train = eachindex(y)
@@ -45,7 +46,6 @@ function flux_mod_eval(flux_model,
         epoch_collect_max = []
         j0 = 0
         for k in 1:size(cv_strategy)[1]
-            ps_init = Flux.params(flux_model)
             flux_model1 = flux_model
             Flux.loadparams!(flux_model1, ps_init);
             train, test = cv_strategy[k, ]
