@@ -23,7 +23,7 @@ function flux_mod_eval(flux_model,
     model_perform_df = DataFrame()
     rm(save_trained_model_at, force = true, recursive = true)
     mkdir(save_trained_model_at)
-    ps_init = Zygote.Params(flux_model)
+    ps_init = Flux.params(flux_model)
     if isnothing(cv_strategy)
         epoch_collect_max = []
         train = eachindex(y)
