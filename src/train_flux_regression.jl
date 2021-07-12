@@ -1,5 +1,4 @@
 using Flux
-using Flux.Zygote
 using CSV
 using DataFrames
 using Statistics
