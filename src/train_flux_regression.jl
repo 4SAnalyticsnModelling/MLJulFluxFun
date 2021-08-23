@@ -17,8 +17,8 @@ function flux_mod_eval(flux_model,
     r_squared_precision :: Int64 = 3,
     rmse_precision :: Int64 = 2,
     optimizer = Flux.Optimise.ADAM(),
-    eta_cuts :: Vector,
-    eta_list :: Vector)
+    eta_cuts :: Vector = [1, 200],
+    eta_list :: Vector = [0.1, 0.001])
     model_perform = Array{Float64}(undef, 0, 5)
     model_perform_mat = Array{Float64}(undef, 0, 5)
     model_perform_df = DataFrame()
