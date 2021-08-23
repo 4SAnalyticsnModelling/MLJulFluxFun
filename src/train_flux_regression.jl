@@ -16,7 +16,9 @@ function flux_mod_eval(flux_model,
     nobs_per_batch :: Int64 = 1,
     r_squared_precision :: Int64 = 3,
     rmse_precision :: Int64 = 2,
-    optimizer = Flux.Optimise.ADAM())
+    optimizer = Flux.Optimise.ADAM(),
+    eta_cuts :: Vector,
+    eta_list :: Vector)
     model_perform = Array{Float64}(undef, 0, 5)
     model_perform_mat = Array{Float64}(undef, 0, 5)
     model_perform_df = DataFrame()
@@ -30,6 +32,11 @@ function flux_mod_eval(flux_model,
         y_train = vec(y[train, :])
         data = Flux.Data.DataLoader((x_train, y_train), shuffle = true, batchsize = nobs_per_batch)
         for j in 1:n_epochs
+            for (cut, etas) in zip(eta_cuts, eta_list)
+                if j >= cut
+                    optimizer.eta = etas
+                end
+            end
             my_custom_train!(flux_model, loss, data, optimizer)
             println("epoch = " * string(j) * " training_loss = " * string(loss(flux_model, x_train, y_train)))
         end
@@ -55,11 +62,16 @@ function flux_mod_eval(flux_model,
             y_test = vec(y[test, :])
             data = Flux.Data.DataLoader((x_train, y_train), shuffle = true, batchsize = nobs_per_batch)
             for j in 1:n_epochs
+                for (cut, etas) in zip(eta_cuts, eta_list)
+                    if j >= cut
+                        optimizer.eta = etas
+                    end
+                end
                 my_custom_train!(flux_model1, loss, data, optimizer)
                 valid_loss = loss(flux_model1, x_test, y_test)
                 valid_r2 = Statistics.cor(y_test, vec(flux_model1(x_test)))^2.0
                 println("epoch = " * string(j) * " validation_loss = " * string(valid_loss) * " validation_r2 = " * string(round(valid_r2, digits = 3)))
-#                 if pullback 
+#                 if pullback
 #                     flux_model2 = flux_model1
 #                     my_custom_train!(flux_model2, loss, data, optimizer)
 #                     valid_loss_1 = loss(flux_model2, x_test, y_test)
@@ -106,7 +118,7 @@ function flux_mod_eval(flux_model,
             model_perform_mat = sortslices(model_perform_mat, dims = 1, by = x -> (x[2], x[3]), rev = true)
             model_perform_mat = model_perform_mat[1, :]'
             model_perform_df = DataFrame(model_perform_mat, [:iter, :r_squared_test, :r_squared_train, :rmse_test, :rmse_train])
-#         push!(epoch_collect_max, j0)            
+#         push!(epoch_collect_max, j0)
         end
     end
     return model_perform_df :: DataFrame #, epoch_collect_max
