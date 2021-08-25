@@ -13,7 +13,7 @@ function flux_mod_eval(flux_model,
     n_epochs :: Int64 = 200,
     pullback :: Bool = true,
     lcheck :: Int64 = 10,
-    loss_thresh :: Float64 = 1.0E-12
+    loss_thresh :: Float64 = 1.0E-12,
     nobs_per_batch :: Int64 = 1,
     r_squared_precision :: Int64 = 3,
     rmse_precision :: Int64 = 2,
