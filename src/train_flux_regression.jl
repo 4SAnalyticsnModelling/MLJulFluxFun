@@ -73,37 +73,37 @@ function flux_mod_eval(flux_model,
                 end
                 my_custom_train!(flux_model1, loss, data, optimizer)
                 valid_loss = loss(flux_model1, x_test, y_test)
-                if (loss(flux_model, x_train, y_train) <= loss_thresh) | (valid_loss <= loss_thresh)
-                    break
-                end
+                # if (loss(flux_model, x_train, y_train) <= loss_thresh) | (valid_loss <= loss_thresh)
+                #     break
+                # end
                 valid_r2 = Statistics.cor(y_test, vec(flux_model1(x_test)))^2.0
                 println("epoch = " * string(j) * " validation_loss = " * string(valid_loss) * " validation_r2 = " * string(round(valid_r2, digits = 3)))
-#                 if pullback
-#                     flux_model2 = flux_model1
-#                     my_custom_train!(flux_model2, loss, data, optimizer)
-#                     valid_loss_1 = loss(flux_model2, x_test, y_test)
-#                     valid_r2_1 = Statistics.cor(y_test, vec(flux_model2(x_test)))^2.0
-#                     if (valid_loss < valid_loss_1) & (valid_r2 > valid_r2_1)
-#                         valid_loss_record = []
-#                         valid_r2_record = []
-#                         flux_model3 = flux_model2
-#                         for l in 1:(lcheck - 1)
-#                             my_custom_train!(flux_model3, loss, data, optimizer)
-#                             valid_loss_2 = loss(flux_model3, x_test, y_test)
-#                             valid_r2_2 = Statistics.cor(y_test, vec(flux_model3(x_test)))^2.0
-#                             push!(valid_loss_record, valid_loss_2)
-#                             push!(valid_r2_record, valid_r2_2)
-#                         end
-#                         if (sum(valid_loss .< valid_loss_record) == (lcheck - 1)) & (sum(valid_r2 .> valid_r2_record) == (lcheck - 1))
-#                             try
-#                                 Flux.stop()
-#                             catch
-#                             finally
-#                             end
-#                         break
-#                         end
-#                     end
-#                 end
+                if pullback
+                    flux_model2 = flux_model1
+                    my_custom_train!(flux_model2, loss, data, optimizer)
+                    valid_loss_1 = loss(flux_model2, x_test, y_test)
+                    valid_r2_1 = Statistics.cor(y_test, vec(flux_model2(x_test)))^2.0
+                    if (valid_loss < valid_loss_1) & (valid_r2 > valid_r2_1)
+                        valid_loss_record = []
+                        valid_r2_record = []
+                        flux_model3 = flux_model2
+                        for l in 1:(lcheck - 1)
+                            my_custom_train!(flux_model3, loss, data, optimizer)
+                            valid_loss_2 = loss(flux_model3, x_test, y_test)
+                            valid_r2_2 = Statistics.cor(y_test, vec(flux_model3(x_test)))^2.0
+                            push!(valid_loss_record, valid_loss_2)
+                            push!(valid_r2_record, valid_r2_2)
+                        end
+                        if (sum(valid_loss .< valid_loss_record) == (lcheck - 1)) & (sum(valid_r2 .> valid_r2_record) == (lcheck - 1))
+                            try
+                                Flux.stop()
+                            catch
+                            finally
+                            end
+                        break
+                        end
+                    end
+                end
 #             j0 = j
             end
             y_test = vec(y_test)
