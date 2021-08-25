@@ -114,6 +114,8 @@ function flux_mod_eval(flux_model,
             y_pred_train = vec(flux_model1(x_train))
             r2_train = round((Statistics.cor(y_train, y_pred_train))^2, digits = r_squared_precision)
             rmse_train = round(rmse_(y_train, y_pred_train), digits = rmse_precision)
+            weights = Flux.params(Flux.cpu(flux_model))
+            BSON.@save(save_trained_model_at * "/trained_model.bson", weights)
             model_perform = [k r2_test r2_train rmse_test rmse_train]
             if (k == 1)
                 CSV.write(save_trained_model_at * "/model_training_records.csv", DataFrame(model_perform, [:iter, :r_squared_test, :r_squared_train, :rmse_test, :rmse_train]))
