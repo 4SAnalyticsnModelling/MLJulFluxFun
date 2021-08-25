@@ -13,6 +13,7 @@ function flux_mod_eval(flux_model,
     n_epochs :: Int64 = 200,
     pullback :: Bool = true,
     lcheck :: Int64 = 10,
+    loss_thresh :: Float64 = 1.0E-12
     nobs_per_batch :: Int64 = 1,
     r_squared_precision :: Int64 = 3,
     rmse_precision :: Int64 = 2,
@@ -38,6 +39,9 @@ function flux_mod_eval(flux_model,
                 end
             end
             my_custom_train!(flux_model, loss, data, optimizer)
+            if loss(flux_model, x_train, y_train) <= loss_thresh
+                break
+            end
             println("epoch = " * string(j) * " training_loss = " * string(loss(flux_model, x_train, y_train)))
         end
         y_train = vec(y_train)
@@ -69,6 +73,9 @@ function flux_mod_eval(flux_model,
                 end
                 my_custom_train!(flux_model1, loss, data, optimizer)
                 valid_loss = loss(flux_model1, x_test, y_test)
+                if (loss(flux_model, x_train, y_train) <= loss_thresh) | (valid_loss <= loss_thresh)
+                    break
+                end
                 valid_r2 = Statistics.cor(y_test, vec(flux_model1(x_test)))^2.0
                 println("epoch = " * string(j) * " validation_loss = " * string(valid_loss) * " validation_r2 = " * string(round(valid_r2, digits = 3)))
 #                 if pullback
