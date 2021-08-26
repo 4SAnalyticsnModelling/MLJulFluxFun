@@ -16,9 +16,9 @@ function flux_mod_eval(flux_model,
     nobs_per_batch :: Int64 = 1,
     r_squared_precision :: Int64 = 3,
     rmse_precision :: Int64 = 2,
-    optimizer = Flux.Optimise.ADAM(),
     eta_cuts :: Vector = [1, 200],
-    eta_list :: Vector = [0.1, 0.001])
+    eta_list :: Vector = [0.1, 0.001],
+    optimizer = Flux.Optimise.Optimiser(Flux.Optimise.ClipValue(0.001), Flux.Optimise.ADAM()))
     model_perform = Array{Float64}(undef, 0, 5)
     model_perform_mat = Array{Float64}(undef, 0, 5)
     model_perform_df = DataFrame()
@@ -39,17 +39,21 @@ function flux_mod_eval(flux_model,
             end
             my_custom_train!(flux_model, loss, data, optimizer)
             train_loss = loss(flux_model, x_train, y_train)
+            ps = Flux.params(flux_model)
             println("epoch = " * string(j) * " training_loss = " * string(train_loss))
             if pullback
-                flux_model2 = flux_model1
-                my_custom_train!(flux_model2, loss, data, optimizer)
-                train_loss_1 = loss(flux_model2, x_train, y_train)
+                flux_model1 = flux_model
+                Flux.loadparams!(flux_model1, ps)
+                my_custom_train!(flux_model1, loss, data, optimizer)
+                train_loss_1 = loss(flux_model1, x_train, y_train)
+                ps1 = Flux.params(flux_model1)
                 if train_loss < train_loss_1
                     train_loss_record = []
-                    flux_model3 = flux_model2
+                    flux_model2 = flux_model
+                    Flux.loadparams!(flux_model2, ps1)
                     for l in 1:(lcheck - 1)
-                        my_custom_train!(flux_model3, loss, data, optimizer)
-                        train_loss_2 = loss(flux_model3, x_train, y_train)
+                        my_custom_train!(flux_model2, loss, data, optimizer)
+                        train_loss_2 = loss(flux_model2, x_train, y_train)
                         push!(train_loss_record, train_loss_2)
                     end
                     if sum(train_loss .< train_loss_record) == (lcheck - 1)
@@ -75,7 +79,7 @@ function flux_mod_eval(flux_model,
     else
         for k in 1:size(cv_strategy)[1]
             flux_model1 = flux_model
-            Flux.loadparams!(flux_model1, ps_init);
+            Flux.loadparams!(flux_model1, ps_init)
             train, test = cv_strategy[k, ]
             x_train = Matrix(x[train, :])'
             y_train = vec(y[train, :])
@@ -91,13 +95,17 @@ function flux_mod_eval(flux_model,
                 my_custom_train!(flux_model1, loss, data, optimizer)
                 valid_loss = loss(flux_model1, x_test, y_test)
                 println("epoch = " * string(j) * " validation_loss = " * string(valid_loss))
+                ps1 = Flux.params(flux_model1)
                 if pullback
                     flux_model2 = flux_model1
+                    Flux.loadparams!(flux_model2, ps1)
                     my_custom_train!(flux_model2, loss, data, optimizer)
                     valid_loss_1 = loss(flux_model2, x_test, y_test)
+                    ps2 = Flux.params(flux_model2)
                     if valid_loss < valid_loss_1
                         valid_loss_record = []
                         flux_model3 = flux_model2
+                        Flux.loadparams!(flux_model3, ps2)
                         for l in 1:(lcheck - 1)
                             my_custom_train!(flux_model3, loss, data, optimizer)
                             valid_loss_2 = loss(flux_model3, x_test, y_test)
