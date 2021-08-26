@@ -19,7 +19,7 @@ function loss(flux_model, loss_init, x, y)
     return loss_init(y_pred, vec(y))
 end
 # Custom training function for Flux models
-function my_custom_train!(flux_model, loss, data, optimizer)
+function my_custom_train!(flux_model, loss, loss_init, data, optimizer)
     ps = Flux.params(flux_model)
     for d in data
         train_loss, back = Zygote.pullback(() -> loss(flux_model, loss_init, d...), ps)
