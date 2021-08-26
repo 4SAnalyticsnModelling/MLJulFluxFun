@@ -12,7 +12,7 @@ function flux_mod_eval(flux_model,
     cv_strategy :: Any = nothing,
     n_epochs :: Int64 = 200,
     pullback :: Bool = true,
-    lcheck :: Int64 = 10,
+    lcheck :: Int64 = 5,
     nobs_per_batch :: Int64 = 1,
     r_squared_precision :: Int64 = 3,
     rmse_precision :: Int64 = 2,
@@ -90,7 +90,6 @@ function flux_mod_eval(flux_model,
                 end
                 my_custom_train!(flux_model1, loss, data, optimizer)
                 valid_loss = loss(flux_model1, x_test, y_test)
-                valid_r2 = Statistics.cor(y_test, vec(flux_model1(x_test)))^2.0
                 println("epoch = " * string(j) * " validation_loss = " * string(valid_loss)
                 if pullback
                     flux_model2 = flux_model1
