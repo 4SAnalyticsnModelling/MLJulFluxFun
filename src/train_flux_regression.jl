@@ -90,7 +90,7 @@ function flux_mod_eval(flux_model,
                 end
                 my_custom_train!(flux_model1, loss, data, optimizer)
                 valid_loss = loss(flux_model1, x_test, y_test)
-                println("epoch = " * string(j) * " validation_loss = " * string(valid_loss)
+                println("epoch = " * string(j) * " validation_loss = " * string(valid_loss))
                 if pullback
                     flux_model2 = flux_model1
                     my_custom_train!(flux_model2, loss, data, optimizer)
