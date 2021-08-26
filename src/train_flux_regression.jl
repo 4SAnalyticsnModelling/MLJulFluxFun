@@ -16,10 +16,7 @@ function flux_mod_eval(flux_model,
     nobs_per_batch :: Int64 = 1,
     r_squared_precision :: Int64 = 3,
     rmse_precision :: Int64 = 2,
-    eta_cuts :: Vector = [1, 200],
-    eta_list :: Vector = [0.1, 0.001],
-    clip_thresh :: Float64 = 0.001,
-    optimizer_in = Flux.Optimise.ADAM())
+    optimizer = Flux.Optimise.Optimiser(Flux.Optimise.ClipValue(0.0001), Flux.Optimise.Optimiser(Flux.Optimise.ADAM(), Flux.Optimise.ExpDecay())))
     model_perform = Array{Float64}(undef, 0, 5)
     model_perform_mat = Array{Float64}(undef, 0, 5)
     model_perform_df = DataFrame()
@@ -33,12 +30,6 @@ function flux_mod_eval(flux_model,
         y_train = vec(y[train, :])
         data = Flux.Data.DataLoader((x_train, y_train), shuffle = true, batchsize = nobs_per_batch)
         for j in 1:n_epochs
-            for (cut, etas) in zip(eta_cuts, eta_list)
-                if j >= cut
-                    optimizer_in.eta = etas
-                end
-            end
-            optimizer = Flux.Optimise.Optimiser(Flux.Optimise.ClipValue(clip_thresh), optimizer_in)
             my_custom_train!(flux_model, loss, data, optimizer)
             train_loss = loss(flux_model, x_train, y_train)
             ps = Flux.params(flux_model)
@@ -89,12 +80,6 @@ function flux_mod_eval(flux_model,
             y_test = vec(y[test, :])
             data = Flux.Data.DataLoader((x_train, y_train), shuffle = true, batchsize = nobs_per_batch)
             for j in 1:n_epochs
-                for (cut, etas) in zip(eta_cuts, eta_list)
-                    if j >= cut
-                        optimizer_in.eta = etas
-                    end
-                end
-                optimizer = Flux.Optimise.Optimiser(Flux.Optimise.ClipValue(clip_thresh), optimizer_in)
                 my_custom_train!(flux_model1, loss, data, optimizer)
                 valid_loss = loss(flux_model1, x_test, y_test)
                 println("epoch = " * string(j) * " validation_loss = " * string(valid_loss))
