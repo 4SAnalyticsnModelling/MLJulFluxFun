@@ -16,6 +16,7 @@ function flux_mod_eval(flux_model,
     nobs_per_batch :: Int64 = 1,
     r_squared_precision :: Int64 = 3,
     rmse_precision :: Int64 = 2,
+    loss_init = Flux.Losses.mse,
     optimizer = Flux.Optimise.Optimiser(Flux.Optimise.ClipValue(0.0001), Flux.Optimise.Optimiser(Flux.Optimise.ADAM(), Flux.Optimise.ExpDecay())))
     model_perform = Array{Float64}(undef, 0, 5)
     model_perform_mat = Array{Float64}(undef, 0, 5)

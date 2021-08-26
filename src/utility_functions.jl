@@ -14,11 +14,9 @@ function willmott_d(obs :: T, pred :: S) where {T <: Union{UnitRange{Int64}, Ste
     return 1.0 - sum((obs .- pred).^2) / sum((abs.(pred .- sum(obs)/length(obs)) .+ abs.(obs .- sum(obs)/length(obs))).^2)
 end
 # Loss function for Flux models
-# function loss(flux_model, x, y)
-#     return rmse_(vec(y), vec(flux_model(x)))^2
-# end
-function loss(flux_model, x, y)
-    return 1.0 - willmott_d(vec(y), vec(flux_model(x)))
+function loss(flux_model, loss_init, x, y)
+    y_pred = vec(flux_model(x))
+    return loss_init(y_pred, vec(y))
 end
 # Custom training function for Flux models
 function my_custom_train!(flux_model, loss, data, optimizer)
