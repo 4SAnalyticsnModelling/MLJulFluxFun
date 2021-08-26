@@ -22,7 +22,7 @@ end
 function my_custom_train!(flux_model, loss, data, optimizer)
     ps = Flux.params(flux_model)
     for d in data
-        train_loss, back = Zygote.pullback(() -> loss(flux_model, d...), ps)
+        train_loss, back = Zygote.pullback(() -> loss(flux_model, loss_init, d...), ps)
         gs = back(one(train_loss))
         Flux.update!(optimizer, ps, gs)
     end
