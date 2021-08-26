@@ -64,7 +64,7 @@ function flux_mod_eval(flux_model,
         y_train = vec(y_train)
         y_pred_train = vec(flux_model(x_train))
         r2_train = round((Statistics.cor(y_train, y_pred_train))^2, digits = r_squared_precision)
-        rmse_train = round(rmse_(y_train, y_pred_train), digits = rmse_precision)
+        rmse_train = round(sqrt(Flux.Losses.mse(y_pred_train, y_train)), digits = rmse_precision)
         weights = Flux.params(Flux.cpu(flux_model))
         BSON.@save(save_trained_model_at * "/trained_model.bson", weights)
         model_perform = [r2_train rmse_train]
@@ -114,11 +114,11 @@ function flux_mod_eval(flux_model,
             y_test = vec(y_test)
             y_pred = vec(flux_model1(x_test))
             r2_test = round((Statistics.cor(y_test, y_pred))^2, digits = r_squared_precision)
-            rmse_test = round(rmse_(y_test, y_pred), digits = rmse_precision)
+            rmse_test = round(sqrt(Flux.Losses.mse(y_pred, y_test)), digits = rmse_precision)
             y_train = vec(y_train)
             y_pred_train = vec(flux_model1(x_train))
             r2_train = round((Statistics.cor(y_train, y_pred_train))^2, digits = r_squared_precision)
-            rmse_train = round(rmse_(y_train, y_pred_train), digits = rmse_precision)
+            rmse_train = round(sqrt(Flux.Losses.mse(y_pred_train, y_train)), digits = rmse_precision)
             weights = Flux.params(Flux.cpu(flux_model))
             BSON.@save(save_trained_model_at * "/trained_model.bson", weights)
             model_perform = [k r2_test r2_train rmse_test rmse_train]

@@ -3,7 +3,6 @@ uuid = "ad295cbf-2088-581f-89bf-79eb1143e401"
 authors = ["Symon@4SAnalyticsnModelling"]
 email = ["4sanalyticsnmodelling@gmail.com"]
 repo = "https://github.com/4SAnalyticsnModelling/MLJulFluxFun.jl.git"
-
 [deps]
 BSON = "fbb218c0-5317-5bc6-957e-2ee96dd4b1f0"
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
@@ -11,6 +10,5 @@ DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 DecisionTree = "7806a523-6efd-50cb-b5f6-3fa6f1930dbb"
 Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
 MLJ = "add582a8-e3ab-11e8-2d5e-e98b27df1bc7"
-Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 XGBoost = "009559a3-9522-5dbb-924b-0b6ed2b22bb9"
