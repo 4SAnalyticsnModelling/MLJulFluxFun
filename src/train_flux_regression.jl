@@ -34,18 +34,17 @@ function flux_mod_eval(flux_model,
         train = eachindex(y)
         if standardize
             x_mach = MLJ.machine(sc, x[train, :])
-            y_mach = MLJ.machine(sc, vec(y[train, :]))
+            y_mach = MLJ.machine(sc, y[train])
             MLJ.fit!(x_mach, verbosity = 0)
             MLJ.save(save_trained_model_at * "/Xscaler.jlso", x_mach)
             MLJ.fit!(y_mach, verbosity = 0)
             MLJ.save(save_trained_model_at * "/Yscaler.jlso", y_mach)
             x_train = MLJ.transform(x_mach, x[train, :])
-            y_train = MLJ.transform(y_mach, vec(y[train, :]))
+            y_train = MLJ.transform(y_mach, y[train])
             x_train = Matrix(x_train)'
-            y_train = vec(y_train)
         else
             x_train = Matrix(x[train, :])'
-            y_train = vec(y[train, :])
+            y_train = y[train]
         end
         data = Flux.Data.DataLoader((x_train, y_train), shuffle = true, batchsize = nobs_per_batch)
         for j in 1:n_epochs
@@ -79,7 +78,6 @@ function flux_mod_eval(flux_model,
                 end
             end
         end
-        y_train = vec(y_train)
         y_pred_train = vec(flux_model(x_train))
         if standardize
             y_train = MLJ.inverse_transform(y_mach, y_train)
@@ -99,24 +97,22 @@ function flux_mod_eval(flux_model,
             train, test = cv_strategy[k, ]
             if standardize
                 x_mach = MLJ.machine(sc, x[train, :])
-                y_mach = MLJ.machine(sc, vec(y[train, :]))
+                y_mach = MLJ.machine(sc, y[train])
                 MLJ.fit!(x_mach, verbosity = 0)
                 MLJ.save(save_trained_model_at * "/Xscaler.jlso", x_mach)
                 MLJ.fit!(y_mach, verbosity = 0)
                 MLJ.save(save_trained_model_at * "/Yscaler.jlso", y_mach)
                 x_train = MLJ.transform(x_mach, x[train, :])
-                y_train = MLJ.transform(y_mach, vec(y[train, :]))
+                y_train = MLJ.transform(y_mach, y[train])
                 x_train = Matrix(x_train)'
-                y_train = vec(y_train)
                 x_test = MLJ.transform(x_mach, x[test, :])
-                y_test = MLJ.transform(y_mach, vec(y[test, :]))
+                y_test = MLJ.transform(y_mach, y[test])
                 x_test = Matrix(x_test)'
-                y_test = vec(y_test)
             else
                 x_train = Matrix(x[train, :])'
-                y_train = vec(y[train, :])
+                y_train = y[train]
                 x_test = Matrix(x[test, :])'
-                y_test = vec(y[test, :])
+                y_test = y[test]
             end
             data = Flux.Data.DataLoader((x_train, y_train), shuffle = true, batchsize = nobs_per_batch)
             for j in 1:n_epochs
@@ -150,9 +146,7 @@ function flux_mod_eval(flux_model,
                     end
                 end
             end
-            y_test = vec(y_test)
             y_pred = vec(flux_model1(x_test))
-            y_train = vec(y_train)
             y_pred_train = vec(flux_model1(x_train))
             if standardize
                 y_test = MLJ.inverse_transform(y_mach, y_test)
