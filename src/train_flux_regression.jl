@@ -34,13 +34,13 @@ function flux_mod_eval(flux_model,
         train = eachindex(y)
         if standardize
             x_mach = MLJ.machine(sc, x[train, :])
-            y_mach = MLJ.machine(sc, y[train, :])
+            y_mach = MLJ.machine(sc, vec(y[train, :]))
             MLJ.fit!(x_mach, verbosity = 0)
             MLJ.save(save_trained_model_at * "/Xscaler.jlso", x_mach)
             MLJ.fit!(y_mach, verbosity = 0)
             MLJ.save(save_trained_model_at * "/Yscaler.jlso", y_mach)
             x_train = MLJ.transform(x_mach, x[train, :])
-            y_train = MLJ.transform(y_mach, y[train, :])
+            y_train = MLJ.transform(y_mach, vec(y[train, :]))
             x_train = Matrix(x_train)'
             y_train = vec(y_train)
         else
@@ -98,17 +98,17 @@ function flux_mod_eval(flux_model,
             train, test = cv_strategy[k, ]
             if standardize
                 x_mach = MLJ.machine(sc, x[train, :])
-                y_mach = MLJ.machine(sc, y[train, :])
+                y_mach = MLJ.machine(sc, vec(y[train, :]))
                 MLJ.fit!(x_mach, verbosity = 0)
                 MLJ.save(save_trained_model_at * "/Xscaler.jlso", x_mach)
                 MLJ.fit!(y_mach, verbosity = 0)
                 MLJ.save(save_trained_model_at * "/Yscaler.jlso", y_mach)
                 x_train = MLJ.transform(x_mach, x[train, :])
-                y_train = MLJ.transform(y_mach, y[train, :])
+                y_train = MLJ.transform(y_mach, vec(y[train, :]))
                 x_train = Matrix(x_train)'
                 y_train = vec(y_train)
                 x_test = MLJ.transform(x_mach, x[test, :])
-                y_test = MLJ.transform(y_mach, y[test, :])
+                y_test = MLJ.transform(y_mach, vec(y[test, :]))
                 x_test = Matrix(x_test)'
                 y_test = vec(y_test)
             else
