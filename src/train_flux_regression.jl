@@ -82,6 +82,7 @@ function flux_mod_eval(flux_model,
         y_train = vec(y_train)
         y_pred_train = vec(flux_model(x_train))
         if standardize
+            y_train = MLJ.inverse_transform(y_mach, y_train)
             y_pred_train = MLJ.inverse_transform(y_mach, y_pred_train)
         end
         r2_train = round((Statistics.cor(y_train, y_pred_train))^2, digits = r_squared_precision)
@@ -154,7 +155,9 @@ function flux_mod_eval(flux_model,
             y_train = vec(y_train)
             y_pred_train = vec(flux_model1(x_train))
             if standardize
+                y_test = MLJ.inverse_transform(y_mach, y_test)
                 y_pred = MLJ.inverse_transform(y_mach, y_pred)
+                y_train = MLJ.inverse_transform(y_mach, y_train)
                 y_pred_train = MLJ.inverse_transform(y_mach, y_pred_train)
             end
             r2_test = round((Statistics.cor(y_test, y_pred))^2, digits = r_squared_precision)
