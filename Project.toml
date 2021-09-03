@@ -3,7 +3,6 @@ uuid = "ad295cbf-2088-581f-89bf-79eb1143e401"
 authors = ["Symon@4SAnalyticsnModelling"]
 email = ["4sanalyticsnmodelling@gmail.com"]
 repo = "https://github.com/4SAnalyticsnModelling/MLJulFluxFun.jl.git"
-
 [deps]
 BSON = "fbb218c0-5317-5bc6-957e-2ee96dd4b1f0"
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
