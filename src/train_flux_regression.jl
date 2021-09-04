@@ -3,7 +3,7 @@ using CSV
 using DataFrames
 using Statistics
 using BSON
-using MLJ
+using StatsBase
 # This function evaluates flux models based on user defined resampling strategies
 # cv_strategy = Cross-validation strategy (nothing means no cross-validation all data are used in training the model)
 function flux_mod_eval(flux_model,
@@ -13,7 +13,7 @@ function flux_mod_eval(flux_model,
     cv_strategy :: Any = nothing,
     n_epochs :: Int64 = 200,
     pullback :: Bool = true,
-    standardize :: Bool = false,
+    scaler :: Any = nothing,
     lcheck :: Int64 = 5,
     nobs_per_batch :: Int64 = 1,
     r_squared_precision :: Int64 = 3,
@@ -23,24 +23,18 @@ function flux_mod_eval(flux_model,
     model_perform = Array{Float64}(undef, 0, 5)
     model_perform_mat = Array{Float64}(undef, 0, 5)
     model_perform_df = DataFrame()
-    if standardize == true
-        sc = MLJ.Standardizer()
-    end
     rm(save_trained_model_at, force = true, recursive = true)
     mkdir(save_trained_model_at)
     ps_init = Flux.params(flux_model)
     if isnothing(cv_strategy) == true
         train = eachindex(y)
-        if standardize == true
-            x_mach = MLJ.machine(sc, x[train, :])
-            y_mach = MLJ.machine(sc, y[train])
-            MLJ.fit!(x_mach, verbosity = 0)
-            MLJ.save(save_trained_model_at * "/Xscaler.jlso", x_mach)
-            MLJ.fit!(y_mach, verbosity = 0)
-            MLJ.save(save_trained_model_at * "/Yscaler.jlso", y_mach)
-            x_train = MLJ.transform(x_mach, x[train, :])
-            y_train = MLJ.transform(y_mach, y[train])
-            x_train = Matrix(x_train)'
+        if isnothing(standardize) == false
+            x_scaler = StatsBase.fit(scaler, Matrix(x[train, :]), dims = 2)
+            BSON.@save(save_trained_model_at * "/Xscaler.bson", x_scaler)
+            y_scaler = StatsBase.fit(scaler, y[train], dims = 1)
+            BSON.@save(save_trained_model_at * "/Yscaler.bson", y_scaler)
+            x_train = StatsBase.transform(x_scaler, Matrix(x[train, :]))'
+            y_train = StatsBase.transform(y_scaler, y[train])
         else
             x_train = Matrix(x[train, :])'
             y_train = y[train]
@@ -78,9 +72,9 @@ function flux_mod_eval(flux_model,
             end
         end
         y_pred_train = vec(flux_model(x_train))
-        if standardize == true
-            y_train = MLJ.inverse_transform(y_mach, y_train)
-            y_pred_train = MLJ.inverse_transform(y_mach, y_pred_train)
+        if isnothing(standardize) == false
+            y_train = StatsBase.reconstruct(y_scaler, y_train)
+            y_pred_train = StatsBase.reconstruct(y_scaler, y_pred_train)
         end
         r2_train = round((Statistics.cor(y_train, y_pred_train))^2, digits = r_squared_precision)
         rmse_train = round(sqrt(Flux.Losses.mse(y_pred_train, y_train)), digits = rmse_precision)
@@ -94,19 +88,15 @@ function flux_mod_eval(flux_model,
             flux_model1 = flux_model
             Flux.loadparams!(flux_model1, ps_init)
             train, test = cv_strategy[k, ]
-            if standardize == true
-                x_mach = MLJ.machine(sc, x[train, :])
-                y_mach = MLJ.machine(sc, y[train])
-                MLJ.fit!(x_mach, verbosity = 0)
-                MLJ.save(save_trained_model_at * "/Xscaler.jlso", x_mach)
-                MLJ.fit!(y_mach, verbosity = 0)
-                MLJ.save(save_trained_model_at * "/Yscaler.jlso", y_mach)
-                x_train = MLJ.transform(x_mach, x[train, :])
-                y_train = MLJ.transform(y_mach, y[train])
-                x_train = Matrix(x_train)'
-                x_test = MLJ.transform(x_mach, x[test, :])
-                y_test = MLJ.transform(y_mach, y[test])
-                x_test = Matrix(x_test)'
+            if isnothing(standardize) == false
+                x_scaler = StatsBase.fit(scaler, Matrix(x[train, :]), dims = 2)
+                BSON.@save(save_trained_model_at * "/Xscaler.bson", x_scaler)
+                y_scaler = StatsBase.fit(scaler, y[train], dims = 1)
+                BSON.@save(save_trained_model_at * "/Yscaler.bson", y_scaler)
+                x_train = StatsBase.transform(x_scaler, Matrix(x[train, :]))'
+                y_train = StatsBase.transform(y_scaler, y[train])
+                x_test = StatsBase.transform(x_scaler, Matrix(x[test, :]))'
+                y_test = StatsBase.transform(y_scaler, y[test])
             else
                 x_train = Matrix(x[train, :])'
                 y_train = y[train]
@@ -147,11 +137,11 @@ function flux_mod_eval(flux_model,
             end
             y_pred = vec(flux_model1(x_test))
             y_pred_train = vec(flux_model1(x_train))
-            if standardize == true
-                y_test = MLJ.inverse_transform(y_mach, y_test)
-                y_pred = MLJ.inverse_transform(y_mach, y_pred)
-                y_train = MLJ.inverse_transform(y_mach, y_train)
-                y_pred_train = MLJ.inverse_transform(y_mach, y_pred_train)
+            if isnothing(standardize) == false
+                y_train = StatsBase.reconstruct(y_scaler, y_train)
+                y_test = StatsBase.reconstruct(y_scaler, y_test)
+                y_pred_train = StatsBase.reconstruct(y_scaler, y_pred_train)
+                y_pred = StatsBase.reconstruct(y_scaler, y_pred)
             end
             r2_test = round((Statistics.cor(y_test, y_pred))^2, digits = r_squared_precision)
             rmse_test = round(sqrt(Flux.Losses.mse(y_pred, y_test)), digits = rmse_precision)
