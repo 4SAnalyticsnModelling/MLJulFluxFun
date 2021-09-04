@@ -23,16 +23,15 @@ function flux_mod_eval(flux_model,
     model_perform = Array{Float64}(undef, 0, 5)
     model_perform_mat = Array{Float64}(undef, 0, 5)
     model_perform_df = DataFrame()
-    if standardize
+    if standardize == true
         sc = MLJ.Standardizer()
     end
     rm(save_trained_model_at, force = true, recursive = true)
     mkdir(save_trained_model_at)
     ps_init = Flux.params(flux_model)
-    if isnothing(cv_strategy)
-        epoch_collect_max = []
+    if isnothing(cv_strategy) == true
         train = eachindex(y)
-        if standardize
+        if standardize == true
             x_mach = MLJ.machine(sc, x[train, :])
             y_mach = MLJ.machine(sc, y[train])
             MLJ.fit!(x_mach, verbosity = 0)
@@ -52,7 +51,7 @@ function flux_mod_eval(flux_model,
             train_loss = loss(flux_model, loss_init, x_train, y_train)
             ps = Flux.params(flux_model)
             println("epoch = " * string(j) * " training_loss = " * string(train_loss))
-            if pullback
+            if pullback == true
                 flux_model1 = flux_model
                 Flux.loadparams!(flux_model1, ps)
                 my_custom_train!(flux_model1, loss, loss_init, data, optimizer)
@@ -79,7 +78,7 @@ function flux_mod_eval(flux_model,
             end
         end
         y_pred_train = vec(flux_model(x_train))
-        if standardize
+        if standardize == true
             y_train = MLJ.inverse_transform(y_mach, y_train)
             y_pred_train = MLJ.inverse_transform(y_mach, y_pred_train)
         end
@@ -95,7 +94,7 @@ function flux_mod_eval(flux_model,
             flux_model1 = flux_model
             Flux.loadparams!(flux_model1, ps_init)
             train, test = cv_strategy[k, ]
-            if standardize
+            if standardize == true
                 x_mach = MLJ.machine(sc, x[train, :])
                 y_mach = MLJ.machine(sc, y[train])
                 MLJ.fit!(x_mach, verbosity = 0)
@@ -120,7 +119,7 @@ function flux_mod_eval(flux_model,
                 valid_loss = loss(flux_model1, loss_init, x_test, y_test)
                 println("epoch = " * string(j) * " validation_loss = " * string(valid_loss))
                 ps1 = Flux.params(flux_model1)
-                if pullback
+                if pullback == true
                     flux_model2 = flux_model1
                     Flux.loadparams!(flux_model2, ps1)
                     my_custom_train!(flux_model2, loss, loss_init, data, optimizer)
@@ -148,7 +147,7 @@ function flux_mod_eval(flux_model,
             end
             y_pred = vec(flux_model1(x_test))
             y_pred_train = vec(flux_model1(x_train))
-            if standardize
+            if standardize == true
                 y_test = MLJ.inverse_transform(y_mach, y_test)
                 y_pred = MLJ.inverse_transform(y_mach, y_pred)
                 y_train = MLJ.inverse_transform(y_mach, y_train)
@@ -161,7 +160,7 @@ function flux_mod_eval(flux_model,
             weights = Flux.params(Flux.cpu(flux_model))
             BSON.@save(save_trained_model_at * "/trained_model.bson", weights)
             model_perform = [k r2_test r2_train rmse_test rmse_train]
-            if (k == 1)
+            if k == 1
                 CSV.write(save_trained_model_at * "/model_training_records.csv", DataFrame(model_perform, [:iter, :r_squared_test, :r_squared_train, :rmse_test, :rmse_train]))
             else
                 CSV.write(save_trained_model_at * "/model_training_records.csv", DataFrame(model_perform, [:iter, :r_squared_test, :r_squared_train, :rmse_test, :rmse_train]), append = true)
