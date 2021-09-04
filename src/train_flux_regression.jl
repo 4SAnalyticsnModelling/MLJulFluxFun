@@ -28,7 +28,7 @@ function flux_mod_eval(flux_model,
     ps_init = Flux.params(flux_model)
     if isnothing(cv_strategy) == true
         train = eachindex(y)
-        if isnothing(standardize) == false
+        if isnothing(scaler) == false
             x_scaler = StatsBase.fit(scaler, Matrix(x[train, :]), dims = 2)
             BSON.@save(save_trained_model_at * "/Xscaler.bson", x_scaler)
             y_scaler = StatsBase.fit(scaler, y[train], dims = 1)
@@ -72,7 +72,7 @@ function flux_mod_eval(flux_model,
             end
         end
         y_pred_train = vec(flux_model(x_train))
-        if isnothing(standardize) == false
+        if isnothing(scaler) == false
             y_train = StatsBase.reconstruct(y_scaler, y_train)
             y_pred_train = StatsBase.reconstruct(y_scaler, y_pred_train)
         end
@@ -88,7 +88,7 @@ function flux_mod_eval(flux_model,
             flux_model1 = flux_model
             Flux.loadparams!(flux_model1, ps_init)
             train, test = cv_strategy[k, ]
-            if isnothing(standardize) == false
+            if isnothing(scaler) == false
                 x_scaler = StatsBase.fit(scaler, Matrix(x[train, :]), dims = 2)
                 BSON.@save(save_trained_model_at * "/Xscaler.bson", x_scaler)
                 y_scaler = StatsBase.fit(scaler, y[train], dims = 1)
@@ -137,7 +137,7 @@ function flux_mod_eval(flux_model,
             end
             y_pred = vec(flux_model1(x_test))
             y_pred_train = vec(flux_model1(x_train))
-            if isnothing(standardize) == false
+            if isnothing(scaler) == false
                 y_train = StatsBase.reconstruct(y_scaler, y_train)
                 y_test = StatsBase.reconstruct(y_scaler, y_test)
                 y_pred_train = StatsBase.reconstruct(y_scaler, y_pred_train)
