@@ -29,7 +29,7 @@ function flux_mod_eval(flux_model,
     if isnothing(cv_strategy) == true
         train = eachindex(y)
         if isnothing(scaler) == false
-            x_scaler = StatsBase.fit(scaler, Matrix(x[train, :]), dims = 2)
+            x_scaler = StatsBase.fit(scaler, Matrix(x[train, :]), dims = 1)
             BSON.@save(save_trained_model_at * "/Xscaler.bson", x_scaler)
             y_scaler = StatsBase.fit(scaler, y[train], dims = 1)
             BSON.@save(save_trained_model_at * "/Yscaler.bson", y_scaler)
@@ -89,7 +89,7 @@ function flux_mod_eval(flux_model,
             Flux.loadparams!(flux_model1, ps_init)
             train, test = cv_strategy[k, ]
             if isnothing(scaler) == false
-                x_scaler = StatsBase.fit(scaler, Matrix(x[train, :]), dims = 2)
+                x_scaler = StatsBase.fit(scaler, Matrix(x[train, :]), dims = 1)
                 BSON.@save(save_trained_model_at * "/Xscaler.bson", x_scaler)
                 y_scaler = StatsBase.fit(scaler, y[train], dims = 1)
                 BSON.@save(save_trained_model_at * "/Yscaler.bson", y_scaler)
