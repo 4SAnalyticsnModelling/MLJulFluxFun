@@ -12,9 +12,7 @@ function my_custom_train!(flux_model, ps, loss, loss_init, data, optimizer)
     for d in data
         train_loss, back = Zygote.pullback(() -> loss(flux_model, loss_init, d...), ps)
         gs = back(one(train_loss))
-        if length(findall(x -> (x .> 0), any.(isnan.(flux_model[1].W)))) > 0
-            Flux.stop()
-        end
+        replace!(flux_model[1].W, NaN => 0.0)
         Flux.update!(optimizer, ps, gs)
     end
  end
