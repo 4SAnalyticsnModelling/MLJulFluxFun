@@ -7,15 +7,10 @@ function loss(flux_model, loss_init, x, y)
     return loss_init(y_pred, vec(y))
 end
 # Custom training function for Flux models
-function my_custom_train!(flux_model, loss, loss_init, data, optimizer)
-    ps = Flux.params(flux_model)
+function my_custom_train!(flux_model, ps, loss, loss_init, data, optimizer)
+    ps = Zygote.Params(ps)
     for d in data
         train_loss, back = Zygote.pullback(() -> loss(flux_model, loss_init, d...), ps)
-        if isnan(train_loss) == true
-            train_loss = 0
-        else
-            train_loss = train_loss
-        end
         gs = back(one(train_loss))
         Flux.update!(optimizer, ps, gs)
     end
