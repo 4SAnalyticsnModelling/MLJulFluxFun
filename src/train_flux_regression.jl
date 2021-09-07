@@ -43,6 +43,14 @@ function flux_mod_eval(flux_model,
         for j in 1:n_epochs
             my_custom_train!(flux_model, ps_init, oss, loss_init, data, optimizer)
             train_loss = loss(flux_model, loss_init, x_train, y_train)
+            if isnan(train_loss) == true
+                try
+                    Flux.stop()
+                catch
+                finally
+                end
+            break
+            end
             ps = Flux.params(flux_model)
             println("epoch = " * string(j) * " training_loss = " * string(train_loss))
             if pullback == true
@@ -107,6 +115,14 @@ function flux_mod_eval(flux_model,
             for j in 1:n_epochs
                 my_custom_train!(flux_model1, ps_init, loss, loss_init, data, optimizer)
                 valid_loss = loss(flux_model1, loss_init, x_test, y_test)
+                if isnan(valid_loss) == true
+                    try
+                        Flux.stop()
+                    catch
+                    finally
+                    end
+                break
+                end
                 println("epoch = " * string(j) * " validation_loss = " * string(valid_loss))
                 ps1 = Flux.params(flux_model1)
                 if pullback == true
