@@ -11,7 +11,15 @@ function my_custom_train!(flux_model, ps, loss, loss_init, data, optimizer)
     ps = Zygote.Params(ps)
     for d in data
         train_loss, back = Zygote.pullback(() -> loss(flux_model, loss_init, d...), ps)
-        gs = back(one(train_loss))
-        Flux.update!(optimizer, ps, gs)
+        if isnan(train_loss) == true
+            try
+                Flux.skip()
+            catch
+            finally
+            end
+        else
+            gs = back(one(train_loss))
+            Flux.update!(optimizer, ps, gs)
+        end
     end
  end
