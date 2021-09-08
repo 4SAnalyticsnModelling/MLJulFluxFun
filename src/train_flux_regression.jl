@@ -13,7 +13,8 @@ function flux_mod_eval(flux_model,
     cv_strategy :: Any = nothing,
     n_epochs :: Int64 = 200,
     pullback :: Bool = true,
-    scaler :: Any = nothing,
+    scaler_x :: Any = nothing,
+    scaler_y :: Any = nothing,
     lcheck :: Int64 = 5,
     nobs_per_batch :: Int64 = 1,
     r_squared_precision :: Int64 = 3,
@@ -28,21 +29,23 @@ function flux_mod_eval(flux_model,
     ps_init = Flux.params(flux_model)
     if isnothing(cv_strategy) == true
         train = eachindex(y)
-        if isnothing(scaler) == false
-            x_scaler = StatsBase.fit(scaler, Matrix(x[train, :]), dims = 1)
+        if isnothing(scaler_x) == false
+            x_scaler = StatsBase.fit(scaler_x, Matrix(x[train, :]), dims = 1)
             BSON.@save(save_trained_model_at * "/Xscaler.bson", x_scaler)
-            y_scaler = StatsBase.fit(scaler, y[train], dims = 1)
-            BSON.@save(save_trained_model_at * "/Yscaler.bson", y_scaler)
             x_train = StatsBase.transform(x_scaler, Matrix(x[train, :]))'
-            y_train = StatsBase.transform(y_scaler, y[train])
         else
             x_train = Matrix(x[train, :])'
+        end
+        if isnothing(scaler_y) == false
+            y_scaler = StatsBase.fit(scaler_y, y[train], dims = 1)
+            BSON.@save(save_trained_model_at * "/Yscaler.bson", y_scaler)
+            y_train = StatsBase.transform(y_scaler, y[train])
+        else
             y_train = y[train]
         end
         data = Flux.Data.DataLoader((x_train, y_train), shuffle = true, batchsize = nobs_per_batch)
-        n = n_epochs + 1
-        j = 0
-        while j < n
+        j = 1
+        while j < (n_epochs + 1)
             my_custom_train!(flux_model, ps_init, oss, loss_init, data, optimizer)
             train_loss = loss(flux_model, loss_init, x_train, y_train)
             if isnan(train_loss) == false
@@ -58,7 +61,7 @@ function flux_mod_eval(flux_model,
                         train_loss_record = []
                         flux_model2 = flux_model
                         Flux.loadparams!(flux_model2, ps1)
-                        l = 0
+                        l = 1
                         while l < lcheck
                             my_custom_train!(flux_model2, ps1, loss, loss_init, data, optimizer)
                             train_loss_2 = loss(flux_model2, loss_init, x_train, y_train)
@@ -76,7 +79,6 @@ function flux_mod_eval(flux_model,
                     end
                 end
             else
-                n += 1
                 try
                     Flux.skip()
                 catch
@@ -86,7 +88,7 @@ function flux_mod_eval(flux_model,
             j += 1
         end
         y_pred_train = vec(flux_model(x_train))
-        if isnothing(scaler) == false
+        if isnothing(scaler_y) == false
             y_train = StatsBase.reconstruct(y_scaler, y_train)
             y_pred_train = StatsBase.reconstruct(y_scaler, y_pred_train)
         end
@@ -98,30 +100,32 @@ function flux_mod_eval(flux_model,
         model_perform_df = DataFrame(model_perform[1, :]', [:r_squared_train, :rmse_train])
         CSV.write(save_trained_model_at * "/model_training_records.csv", model_perform_df)
     else
-        k = 0
+        k = 1
         while k < (1 + size(cv_strategy)[1])
             flux_model1 = flux_model
             Flux.loadparams!(flux_model1, ps_init)
             train, test = cv_strategy[k, ]
-            if isnothing(scaler) == false
-                x_scaler = StatsBase.fit(scaler, Matrix(x[train, :]), dims = 1)
+            if isnothing(scaler_x) == false
+                x_scaler = StatsBase.fit(scaler_x, Matrix(x[train, :]), dims = 1)
                 BSON.@save(save_trained_model_at * "/Xscaler.bson", x_scaler)
-                y_scaler = StatsBase.fit(scaler, y[train], dims = 1)
-                BSON.@save(save_trained_model_at * "/Yscaler.bson", y_scaler)
                 x_train = StatsBase.transform(x_scaler, Matrix(x[train, :]))'
-                y_train = StatsBase.transform(y_scaler, y[train])
                 x_test = StatsBase.transform(x_scaler, Matrix(x[test, :]))'
-                y_test = StatsBase.transform(y_scaler, y[test])
             else
                 x_train = Matrix(x[train, :])'
-                y_train = y[train]
                 x_test = Matrix(x[test, :])'
+            end
+            if isnothing(scaler_y) == false
+                y_scaler = StatsBase.fit(scaler_y, y[train], dims = 1)
+                BSON.@save(save_trained_model_at * "/Yscaler.bson", y_scaler)
+                y_train = StatsBase.transform(y_scaler, y[train])
+                y_test = StatsBase.transform(y_scaler, y[test])
+            else
+                y_train = y[train]
                 y_test = y[test]
             end
             data = Flux.Data.DataLoader((x_train, y_train), shuffle = true, batchsize = nobs_per_batch)
-            n = n_epochs + 1
-            j = 0
-            while j < n
+            j = 1
+            while j < (n_epochs + 1)
                 my_custom_train!(flux_model1, ps_init, loss, loss_init, data, optimizer)
                 valid_loss = loss(flux_model1, loss_init, x_test, y_test)
                 if isnan(valid_loss) == false
@@ -137,7 +141,7 @@ function flux_mod_eval(flux_model,
                             valid_loss_record = []
                             flux_model3 = flux_model2
                             Flux.loadparams!(flux_model3, ps2)
-                            l = 0
+                            l = 1
                             while l < lcheck
                                 my_custom_train!(flux_model3, ps2, loss, loss_init, data, optimizer)
                                 valid_loss_2 = loss(flux_model3, loss_init, x_test, y_test)
@@ -155,7 +159,6 @@ function flux_mod_eval(flux_model,
                         end
                     end
                 else
-                    n += 1
                     try
                         Flux.skip()
                     catch
@@ -166,7 +169,7 @@ function flux_mod_eval(flux_model,
             end
             y_pred = vec(flux_model1(x_test))
             y_pred_train = vec(flux_model1(x_train))
-            if isnothing(scaler) == false
+            if isnothing(scaler_y) == false
                 y_train = StatsBase.reconstruct(y_scaler, y_train)
                 y_test = StatsBase.reconstruct(y_scaler, y_test)
                 y_pred_train = StatsBase.reconstruct(y_scaler, y_pred_train)
@@ -192,5 +195,5 @@ function flux_mod_eval(flux_model,
             k += 1
         end
     end
-    return model_perform_df :: DataFrame
+    return model_perform_df
 end
