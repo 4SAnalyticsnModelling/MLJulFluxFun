@@ -88,8 +88,8 @@ function flux_mod_eval(flux_model,
         end
         y_pred_train = vec(flux_model(x_train)[1, :])
         if isnothing(scaler_y) == false
-            y_train = vec(scale_back(y_scaler, Matrix(reshape(y_train, length(train), 1)))[1, :])
-            y_pred_train = vec(scale_back(y_scaler, Matrix(reshape(y_pred_train, length(train), 1)))[1, :])
+            y_train = vec(scale_back(y_scaler, Matrix(reshape(y_train, length(train), 1)))[:, 1])
+            y_pred_train = vec(scale_back(y_scaler, Matrix(reshape(y_pred_train, length(train), 1)))[:, 1])
         end
         r2_train = round((Statistics.cor(y_train, y_pred_train))^2, digits = r_squared_precision)
         rmse_train = round(sqrt(Flux.Losses.mse(y_pred_train, y_train)), digits = rmse_precision)
@@ -169,10 +169,10 @@ function flux_mod_eval(flux_model,
             y_pred = vec(flux_model1(x_test)[1, :])
             y_pred_train = vec(flux_model1(x_train)[1, :])
             if isnothing(scaler_y) == false
-                y_train = vec(scale_back(y_scaler, Matrix(reshape(y_train, length(train), 1)))[1, :])
-                y_pred_train = vec(scale_back(y_scaler, Matrix(reshape(y_pred_train, length(train), 1)))[1, :])
-                y_test = vec(scale_back(y_scaler, Matrix(reshape(y_test, length(test), 1)))[1, :])
-                y_pred = vec(scale_back(y_scaler, Matrix(reshape(y_pred, length(test), 1)))[1, :])
+                y_train = vec(scale_back(y_scaler, Matrix(reshape(y_train, length(train), 1)))[:, 1])
+                y_pred_train = vec(scale_back(y_scaler, Matrix(reshape(y_pred_train, length(train), 1)))[:, 1])
+                y_test = vec(scale_back(y_scaler, Matrix(reshape(y_test, length(test), 1)))[:, 1])
+                y_pred = vec(scale_back(y_scaler, Matrix(reshape(y_pred, length(test), 1)))[:, 1])
             end
             r2_test = round((Statistics.cor(y_test, y_pred))^2, digits = r_squared_precision)
             rmse_test = round(sqrt(Flux.Losses.mse(y_pred, y_test)), digits = rmse_precision)
