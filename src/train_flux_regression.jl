@@ -3,7 +3,6 @@ using CSV
 using DataFrames
 using Statistics
 using BSON
-using StatsBase
 # This function evaluates flux models based on user defined resampling strategies
 # cv_strategy = Cross-validation strategy (nothing means no cross-validation all data are used in training the model)
 function flux_mod_eval(flux_model,
@@ -30,23 +29,23 @@ function flux_mod_eval(flux_model,
     if isnothing(cv_strategy) == true
         train = eachindex(y)
         if isnothing(scaler_x) == false
-            x_scaler = StatsBase.fit(scaler_x, Matrix(x[train, :]), dims = 1)
+            x_scaler = fit_scaler(scaler_x, Matrix(x[train, :]))
             BSON.@save(save_trained_model_at * "/Xscaler.bson", x_scaler)
-            x_train = StatsBase.transform(x_scaler, Matrix(x[train, :]))'
+            x_train = scale_transform(x_scaler, Matrix(x[train, :]))'
         else
             x_train = Matrix(x[train, :])'
         end
         if isnothing(scaler_y) == false
-            y_scaler = StatsBase.fit(scaler_y, y[train], dims = 1)
+            y_scaler = fit_scaler(scaler_y, Matrix(reshape(y[train], length(train), 1)))
             BSON.@save(save_trained_model_at * "/Yscaler.bson", y_scaler)
-            y_train = StatsBase.transform(y_scaler, y[train])
+            y_train = vec(scale_transform(y_scaler, Matrix(reshape(y[train], length(train), 1)))[:, 1])
         else
             y_train = y[train]
         end
         data = Flux.Data.DataLoader((x_train, y_train), shuffle = true, batchsize = nobs_per_batch)
         j = 1
         while j < (n_epochs + 1)
-            my_custom_train!(flux_model, ps_init, oss, loss_init, data, optimizer)
+            my_custom_train!(flux_model, loss, loss_init, data, optimizer)
             train_loss = loss(flux_model, loss_init, x_train, y_train)
             if isnan(train_loss) == false
                 ps = Flux.params(flux_model)
@@ -54,7 +53,7 @@ function flux_mod_eval(flux_model,
                 if pullback == true
                     flux_model1 = flux_model
                     Flux.loadparams!(flux_model1, ps)
-                    my_custom_train!(flux_model1, ps, loss, loss_init, data, optimizer)
+                    my_custom_train!(flux_model1, loss, loss_init, data, optimizer)
                     train_loss_1 = loss(flux_model1, loss_init, x_train, y_train)
                     ps1 = Flux.params(flux_model1)
                     if train_loss < train_loss_1
@@ -63,7 +62,7 @@ function flux_mod_eval(flux_model,
                         Flux.loadparams!(flux_model2, ps1)
                         l = 1
                         while l < lcheck
-                            my_custom_train!(flux_model2, ps1, loss, loss_init, data, optimizer)
+                            my_custom_train!(flux_model2, loss, loss_init, data, optimizer)
                             train_loss_2 = loss(flux_model2, loss_init, x_train, y_train)
                             push!(train_loss_record, train_loss_2)
                             l += 1
@@ -87,10 +86,10 @@ function flux_mod_eval(flux_model,
             end
             j += 1
         end
-        y_pred_train = vec(flux_model(x_train))
+        y_pred_train = vec(flux_model(x_train)[1, :])
         if isnothing(scaler_y) == false
-            y_train = StatsBase.reconstruct(y_scaler, y_train)
-            y_pred_train = StatsBase.reconstruct(y_scaler, y_pred_train)
+            y_train = vec(scale_back(y_scaler, Matrix(reshape(y_train, length(train), 1)))[1, :])
+            y_pred_train = vec(scale_back(y_scaler, Matrix(reshape(y_pred_train, length(train), 1)))[1, :])
         end
         r2_train = round((Statistics.cor(y_train, y_pred_train))^2, digits = r_squared_precision)
         rmse_train = round(sqrt(Flux.Losses.mse(y_pred_train, y_train)), digits = rmse_precision)
@@ -106,19 +105,19 @@ function flux_mod_eval(flux_model,
             Flux.loadparams!(flux_model1, ps_init)
             train, test = cv_strategy[k, ]
             if isnothing(scaler_x) == false
-                x_scaler = StatsBase.fit(scaler_x, Matrix(x[train, :]), dims = 1)
+                x_scaler = fit_scaler(scaler_x, Matrix(x[train, :]))
                 BSON.@save(save_trained_model_at * "/Xscaler.bson", x_scaler)
-                x_train = StatsBase.transform(x_scaler, Matrix(x[train, :]))'
-                x_test = StatsBase.transform(x_scaler, Matrix(x[test, :]))'
+                x_train = scale_transform(x_scaler, Matrix(x[train, :]))'
+                x_test = scale_transform(x_scaler, Matrix(x[test, :]))'
             else
                 x_train = Matrix(x[train, :])'
                 x_test = Matrix(x[test, :])'
             end
             if isnothing(scaler_y) == false
-                y_scaler = StatsBase.fit(scaler_y, y[train], dims = 1)
+                y_scaler = fit_scaler(scaler_y, Matrix(reshape(y[train], length(train), 1)))
                 BSON.@save(save_trained_model_at * "/Yscaler.bson", y_scaler)
-                y_train = StatsBase.transform(y_scaler, y[train])
-                y_test = StatsBase.transform(y_scaler, y[test])
+                y_train = vec(scale_transform(y_scaler, Matrix(reshape(y[train], length(train), 1)))[:, 1])
+                y_test = vec(scale_transform(y_scaler, Matrix(reshape(y[test], length(test), 1)))[:, 1])
             else
                 y_train = y[train]
                 y_test = y[test]
@@ -126,7 +125,7 @@ function flux_mod_eval(flux_model,
             data = Flux.Data.DataLoader((x_train, y_train), shuffle = true, batchsize = nobs_per_batch)
             j = 1
             while j < (n_epochs + 1)
-                my_custom_train!(flux_model1, ps_init, loss, loss_init, data, optimizer)
+                my_custom_train!(flux_model1, loss, loss_init, data, optimizer)
                 valid_loss = loss(flux_model1, loss_init, x_test, y_test)
                 if isnan(valid_loss) == false
                     println("epoch = " * string(j) * " validation_loss = " * string(valid_loss))
@@ -134,7 +133,7 @@ function flux_mod_eval(flux_model,
                     if pullback == true
                         flux_model2 = flux_model1
                         Flux.loadparams!(flux_model2, ps1)
-                        my_custom_train!(flux_model2, ps1, loss, loss_init, data, optimizer)
+                        my_custom_train!(flux_model2, loss, loss_init, data, optimizer)
                         valid_loss_1 = loss(flux_model2, loss_init, x_test, y_test)
                         ps2 = Flux.params(flux_model2)
                         if valid_loss < valid_loss_1
@@ -143,7 +142,7 @@ function flux_mod_eval(flux_model,
                             Flux.loadparams!(flux_model3, ps2)
                             l = 1
                             while l < lcheck
-                                my_custom_train!(flux_model3, ps2, loss, loss_init, data, optimizer)
+                                my_custom_train!(flux_model3, loss, loss_init, data, optimizer)
                                 valid_loss_2 = loss(flux_model3, loss_init, x_test, y_test)
                                 push!(valid_loss_record, valid_loss_2)
                                 l += 1
@@ -167,13 +166,13 @@ function flux_mod_eval(flux_model,
                 end
                 j += 1
             end
-            y_pred = vec(flux_model1(x_test))
-            y_pred_train = vec(flux_model1(x_train))
+            y_pred = vec(flux_model1(x_test)[1, :])
+            y_pred_train = vec(flux_model1(x_train)[1, :])
             if isnothing(scaler_y) == false
-                y_train = StatsBase.reconstruct(y_scaler, y_train)
-                y_test = StatsBase.reconstruct(y_scaler, y_test)
-                y_pred_train = StatsBase.reconstruct(y_scaler, y_pred_train)
-                y_pred = StatsBase.reconstruct(y_scaler, y_pred)
+                y_train = vec(scale_back(y_scaler, Matrix(reshape(y_train, length(train), 1)))[1, :])
+                y_pred_train = vec(scale_back(y_scaler, Matrix(reshape(y_pred_train, length(train), 1)))[1, :])
+                y_test = vec(scale_back(y_scaler, Matrix(reshape(y_test, length(test), 1)))[1, :])
+                y_pred = vec(scale_back(y_scaler, Matrix(reshape(y_pred, length(test), 1)))[1, :])
             end
             r2_test = round((Statistics.cor(y_test, y_pred))^2, digits = r_squared_precision)
             rmse_test = round(sqrt(Flux.Losses.mse(y_pred, y_test)), digits = rmse_precision)
