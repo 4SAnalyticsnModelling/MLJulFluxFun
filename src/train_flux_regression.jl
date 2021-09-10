@@ -69,13 +69,15 @@ function flux_mod_eval(flux_model_builder :: Any,
                 println("epoch = " * string(j) * " training_loss = " * string(train_loss))
                 if pullback == true
                     push!(train_loss_record, train_loss)
-                    if (j > (lcheck + 1)) & (sum(train_loss .> train_loss_record[(end - 1 - lcheck):(end - 1)]) == lcheck)
-                        try
-                            Flux.stop()
-                        catch
-                        finally
+                    if j > (lcheck + 1)
+                        if sum(train_loss .> train_loss_record[(end - 1 - lcheck):(end - 1)]) == lcheck
+                            try
+                                Flux.stop()
+                            catch
+                            finally
+                            end
+                        break
                         end
-                    break
                     end
                 end
             else
@@ -134,13 +136,15 @@ function flux_mod_eval(flux_model_builder :: Any,
                     println("epoch = " * string(j) * " validation_loss = " * string(valid_loss))
                     if pullback == true
                         push!(valid_loss_record, valid_loss)
-                        if (j > (lcheck + 1)) & (sum(valid_loss .> valid_loss_record[(end -1 - lcheck):(end - 1)]) == lcheck)
-                            try
-                                Flux.stop()
-                            catch
-                            finally
+                        if j > (lcheck + 1)
+                            if sum(valid_loss .> valid_loss_record[(end -1 - lcheck):(end - 1)]) == lcheck
+                                try
+                                    Flux.stop()
+                                catch
+                                finally
+                                end
+                            break
                             end
-                        break
                         end
                     end
                 else
