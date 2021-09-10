@@ -1,6 +1,5 @@
 # Utility and wrapper functions to be used in training and evaluating models
 using Flux
-using Flux.Zygote
 # Loss function for Flux models
 function loss(flux_model, loss_init, x, y :: Vector)
     y_pred = vec(flux_model(x)[1, :])
@@ -10,7 +9,7 @@ end
 function my_custom_train!(flux_model, loss, loss_init, data, optimizer)
     ps = Flux.params(flux_model)
     for d in data
-        gs = gradient(ps) do
+        gs = Flux.gradient(ps) do
             train_loss = loss(flux_model, loss_init, d...)
         end
         Flux.update!(optimizer, ps, gs)
@@ -18,19 +17,18 @@ function my_custom_train!(flux_model, loss, loss_init, data, optimizer)
 end
 # Scaler for data normalization and standardization
 # Construct maximum minimum scaler for data normalization
-struct max_min_scaler
+mutable struct max_min_scaler
     min :: Float64
     max :: Float64
 end
 # Construct standar scaler for data standardization
-struct standard_scaler
+mutable struct standard_scaler
 end
 # Function for fitting the scaler
-function fit_scaler(scaler :: Union{max_min_scaler, standard_scaler}, raw_x :: Matrix)
+function fit_scaler(scaler :: Union{max_min_scaler, standard_scaler}, raw_x :: Matrix{Float64})
     if typeof(scaler) == max_min_scaler
         i = 1
-        max_raw_x = []
-        min_raw_x = []
+        max_raw_x, min_raw_x = [], []
         while i < (size(raw_x)[2] + 1)
             push!(max_raw_x, extrema(raw_x[:, i])[2])
             push!(min_raw_x, extrema(raw_x[:, i])[1])
@@ -39,8 +37,7 @@ function fit_scaler(scaler :: Union{max_min_scaler, standard_scaler}, raw_x :: M
         return Dict(:max => scaler.max, :min => scaler.min, :max_value => max_raw_x, :min_value => min_raw_x)
     elseif typeof(scaler) == standard_scaler
         i = 1
-        mean_raw_x = []
-        stdev_raw_x = []
+        mean_raw_x, stdev_raw_x = [], []
         while i < (size(raw_x)[2] + 1)
             push!(mean_raw_x, sum(raw_x[:, i]) / size(raw_x)[1])
             push!(stdev_raw_x, sqrt(sum((raw_x[:, i] .- sum(raw_x[:, i]) / size(raw_x)[1]).^2.0) / (size(raw_x)[1] - 1)))
@@ -52,7 +49,7 @@ function fit_scaler(scaler :: Union{max_min_scaler, standard_scaler}, raw_x :: M
     end
 end
 # Function for transforming a dataset by using fitted scaler parameters
-function scale_transform(fitted_scaler :: Dict, raw_x :: Matrix)
+function scale_transform(fitted_scaler :: Dict, raw_x :: Matrix{Float64})
     i = 1
     conv_x = Matrix{Float64}(undef, size(raw_x)[1], size(raw_x)[2])
     while i < (size(raw_x)[2] + 1)
@@ -76,7 +73,7 @@ function scale_transform(fitted_scaler :: Dict, raw_x :: Matrix)
     return conv_x
 end
 # Function for converting the transformed data back to original data by using fitted scaler parameters
-function scale_back(fitted_scaler :: Dict, conv_x :: Matrix)
+function scale_back(fitted_scaler :: Dict, conv_x :: Matrix{Float64})
     i = 1
     raw_x = Matrix{Float64}(undef, size(conv_x)[1], size(conv_x)[2])
     while i < (size(raw_x)[2] + 1)
