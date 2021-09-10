@@ -221,9 +221,9 @@ version = "0.9.10"
 
 [[FillArrays]]
 deps = ["LinearAlgebra", "Random", "SparseArrays", "Statistics"]
-git-tree-sha1 = "a3b7b041753094f3b17ffa9d2e2e07d8cace09cd"
+git-tree-sha1 = "caf289224e622f518c9dbfe832cdafa17d7c80a6"
 uuid = "1a297f60-69ca-5386-bcde-b61e274b549b"
-version = "0.12.3"
+version = "0.12.4"
 
 [[FixedPointNumbers]]
 deps = ["Statistics"]
@@ -344,9 +344,9 @@ version = "0.8.4"
 
 [[LLVM]]
 deps = ["CEnum", "LLVMExtra_jll", "Libdl", "Printf", "Unicode"]
-git-tree-sha1 = "29174613a9fa0424f5aef1a9dbd234acff7ce1f2"
+git-tree-sha1 = "8fb1a675d1b51885a78bc980fbf1944279880f97"
 uuid = "929cbde3-209d-540e-8aea-75f648917ca0"
-version = "4.5.0"
+version = "4.5.1"
 
 [[LLVMExtra_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -451,9 +451,9 @@ version = "1.1.2"
 
 [[MLJTuning]]
 deps = ["ComputationalResources", "Distributed", "Distributions", "LatinHypercubeSampling", "MLJBase", "ProgressMeter", "Random", "RecipesBase"]
-git-tree-sha1 = "1deadc54bf1577a46978d80fe2506d62fa8bf18f"
+git-tree-sha1 = "c4fe9e3a132313ca49687ed0e47e15d231538d90"
 uuid = "03970b2e-30c4-11ea-3135-d1576263f10f"
-version = "0.6.10"
+version = "0.6.11"
 
 [[MacroTools]]
 deps = ["Markdown", "Random"]
@@ -858,9 +858,9 @@ uuid = "83775a58-1f1d-513f-b197-d71354ab007a"
 
 [[Zygote]]
 deps = ["AbstractFFTs", "ChainRules", "ChainRulesCore", "DiffRules", "Distributed", "FillArrays", "ForwardDiff", "IRTools", "InteractiveUtils", "LinearAlgebra", "MacroTools", "NaNMath", "Random", "Requires", "SpecialFunctions", "Statistics", "ZygoteRules"]
-git-tree-sha1 = "003840ce54ae0d16ecd341ded25db90a3ed2f153"
+git-tree-sha1 = "ffbf36ba9cd8476347486a013c93590b910a4855"
 uuid = "e88e6eb3-aa80-5325-afca-941959d7151f"
-version = "0.6.20"
+version = "0.6.21"
 
 [[ZygoteRules]]
 deps = ["MacroTools"]
