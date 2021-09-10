@@ -1,5 +1,6 @@
 # Utility and wrapper functions to be used in training and evaluating models
 using Flux
+using Flux.Zygote
 # Loss function for Flux models
 function loss(flux_model, loss_init, x, y :: Vector)
     y_pred = vec(flux_model(x)[1, :])

@@ -3,6 +3,7 @@ using CSV
 using DataFrames
 using Statistics
 using BSON
+using Flux.Zygote
 # This function evaluates flux models based on user defined resampling strategies
 # cv_strategy = Cross-validation strategy (nothing means no cross-validation all data are used in training the model)
 
