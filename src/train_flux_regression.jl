@@ -58,9 +58,6 @@ function flux_mod_eval(flux_model_builder :: Any,
             y_train = y[train]
         end
         data = Flux.Data.DataLoader((x_train, y_train), shuffle = true, batchsize = nobs_per_batch)
-        if pullback == true
-            train_loss_record = []
-        end
         flux_model = flux_model_builder
         j = 1
         while j < (n_epochs + 1)
@@ -69,9 +66,22 @@ function flux_mod_eval(flux_model_builder :: Any,
             if isnan(train_loss) == false
                 println("epoch = " * string(j) * " training_loss = " * string(train_loss))
                 if pullback == true
-                    push!(train_loss_record, train_loss)
-                    if j > (lcheck + 1)
-                        if sum(train_loss .> train_loss_record[(end - 1 - lcheck):(end - 1)]) == lcheck
+                    flux_model1 = flux_model_builder
+                    Flux.loadparams!(flux_model1, Flux.params(flux_model))
+                    my_custom_train!(flux_model1, loss, loss_init, data, optimizer)
+                    train_loss_1 = loss(flux_model1, loss_init, x_train, y_train)
+                    if train_loss < train_loss_1
+                        train_loss_record = []
+                        flux_model2 = flux_model_builder
+                        Flux.loadparams!(flux_model2, Flux.params(flux_model1))
+                        l = 1
+                        while l < lcheck
+                            my_custom_train!(flux_model2, loss, loss_init, data, optimizer)
+                            train_loss_2 = loss(flux_model2, loss_init, x_train, y_train)
+                            push!(train_loss_record, train_loss_2)
+                            l += 1
+                        end
+                        if sum(train_loss_1 .< train_loss_record) == (lcheck - 1)
                             try
                                 Flux.stop()
                             catch
@@ -105,9 +115,6 @@ function flux_mod_eval(flux_model_builder :: Any,
     else
         k = 1
         while k < (1 + size(cv_strategy)[1])
-            if pullback == true
-                valid_loss_record = []
-            end
             flux_model = flux_model_builder
             train, test = cv_strategy[k, ]
             if isnothing(scaler_x) == false
@@ -136,9 +143,22 @@ function flux_mod_eval(flux_model_builder :: Any,
                 if isnan(valid_loss) == false
                     println("epoch = " * string(j) * " validation_loss = " * string(valid_loss))
                     if pullback == true
-                        push!(valid_loss_record, valid_loss)
-                        if j > (lcheck + 1)
-                            if sum(valid_loss .> valid_loss_record[(end -1 - lcheck):(end - 1)]) == lcheck
+                        flux_model1 = flux_model_builder
+                        Flux.loadparams!(flux_model1, Flux.params(flux_model))
+                        my_custom_train!(flux_model1, loss, loss_init, data, optimizer)
+                        valid_loss_1 = loss(flux_model1, loss_init, x_test, y_test)
+                        if valid_loss < valid_loss_1
+                            valid_loss_record = []
+                            flux_model2 = flux_model_builder
+                            Flux.loadparams!(flux_model2, Flux.params(flux_model1))
+                            l = 1
+                            while l < lcheck
+                                my_custom_train!(flux_model2, loss, loss_init, data, optimizer)
+                                valid_loss_2 = loss(flux_model2, loss_init, x_test, y_test)
+                                push!(valid_loss_record, valid_loss_2)
+                                l += 1
+                            end
+                            if sum(valid_loss_1 .< valid_loss_record) == (lcheck - 1)
                                 try
                                     Flux.stop()
                                 catch
