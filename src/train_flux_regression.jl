@@ -46,9 +46,9 @@ function flux_mod_eval(flux_model_builder :: Any,
         if isnothing(scaler_x) == false
             x_scaler = fit_scaler(scaler_x, Matrix(x[train, :]))
             BSON.@save(save_trained_model_at * "/Xscaler.bson", x_scaler)
-            x_train = scale_transform(x_scaler, Matrix(x[train, :]))'
+            x_train = Matrix(scale_transform(x_scaler, Matrix(x[train, :]))')
         else
-            x_train = Matrix(x[train, :])'
+            x_train = Matrix(Matrix(x[train, :])')
         end
         if isnothing(scaler_y) == false
             y_scaler = fit_scaler(scaler_y, Matrix(reshape(y[train], length(train), 1)))
@@ -120,11 +120,11 @@ function flux_mod_eval(flux_model_builder :: Any,
             if isnothing(scaler_x) == false
                 x_scaler = fit_scaler(scaler_x, Matrix(x[train, :]))
                 BSON.@save(save_trained_model_at * "/Xscaler.bson", x_scaler)
-                x_train = scale_transform(x_scaler, Matrix(x[train, :]))'
-                x_test = scale_transform(x_scaler, Matrix(x[test, :]))'
+                x_train = Matrix(scale_transform(x_scaler, Matrix(x[train, :]))')
+                x_test = Matrix(scale_transform(x_scaler, Matrix(x[test, :]))')
             else
-                x_train = Matrix(x[train, :])'
-                x_test = Matrix(x[test, :])'
+                x_train = Matrix(Matrix(x[train, :])')
+                x_test = Matrix(Matrix(x[test, :])')
             end
             if isnothing(scaler_y) == false
                 y_scaler = fit_scaler(scaler_y, Matrix(reshape(y[train], length(train), 1)))
