@@ -35,7 +35,7 @@ function flux_mod_eval(flux_model_builder :: Any,
     r_squared_precision :: Int64 = 3,
     rmse_precision :: Int64 = 2,
     loss_init = Flux.Losses.mse,
-    optimizer = Flux.Optimise.Optimiser(Flux.Optimise.Optimiser(Flux.Optimise.ADAM(), Flux.Optimise.ExpDecay())))
+    optimizer = Flux.Optimise.Optimiser(Flux.Optimise.ADAM(), Flux.Optimise.ExpDecay()))
     model_perform = Array{Float64}(undef, 0, 5)
     model_perform_mat = Array{Float64}(undef, 0, 5)
     model_perform_df = DataFrame()
@@ -139,14 +139,14 @@ function flux_mod_eval(flux_model_builder :: Any,
             j = 1
             while j < (n_epochs + 1)
                 my_custom_train!(flux_model, loss, loss_init, data, optimizer)
-                valid_loss = loss(flux_model, loss_init, x_test, y_test)
+                valid_loss = loss(flux_model, loss_init, x_test, y_test, false)
                 if isnan(valid_loss) == false
                     println("epoch = " * string(j) * " validation_loss = " * string(valid_loss))
                     if pullback == true
                         flux_model1 = flux_model_builder
                         Flux.loadparams!(flux_model1, Flux.params(flux_model))
                         my_custom_train!(flux_model1, loss, loss_init, data, optimizer)
-                        valid_loss_1 = loss(flux_model1, loss_init, x_test, y_test)
+                        valid_loss_1 = loss(flux_model1, loss_init, x_test, y_test, false)
                         if valid_loss < valid_loss_1
                             valid_loss_record = []
                             flux_model2 = flux_model_builder
@@ -154,7 +154,7 @@ function flux_mod_eval(flux_model_builder :: Any,
                             l = 1
                             while l < lcheck
                                 my_custom_train!(flux_model2, loss, loss_init, data, optimizer)
-                                valid_loss_2 = loss(flux_model2, loss_init, x_test, y_test)
+                                valid_loss_2 = loss(flux_model2, loss_init, x_test, y_test, false)
                                 push!(valid_loss_record, valid_loss_2)
                                 l += 1
                             end

@@ -1,10 +1,15 @@
 # Utility and wrapper functions to be used in training and evaluating models
 using Flux
 using Flux.Zygote
-# Loss function for Flux models
-function loss(flux_model, loss_init, x, y :: Vector)
+# Loss function for Flux models (with L2 reuglarization)
+function loss(flux_model, loss_init, x, y :: Vector, l2_reg :: Bool = true)
     y_pred = vec(flux_model(x)[1, :])
-    return loss_init(y_pred, y)
+    if l2_reg == true
+        sqnorm(x) = sum(abs2, x)
+        return (loss_init(y_pred, y) + sum(sqnorm, Flux.params(flux_model)))
+    else
+        return loss_init(y_pred, y)
+    end
 end
 # Custom training function for Flux models
 function my_custom_train!(flux_model, loss, loss_init, data, optimizer)
