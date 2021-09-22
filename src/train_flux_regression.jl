@@ -65,32 +65,6 @@ function flux_mod_eval(flux_model_builder :: Any,
             train_loss = loss(flux_model, loss_init, x_train, y_train)
             if isnan(train_loss) == false
                 println("epoch = " * string(j) * " training_loss = " * string(train_loss))
-                if pullback == true
-                    flux_model1 = flux_model_builder
-                    Flux.loadparams!(flux_model1, Flux.params(flux_model))
-                    my_custom_train!(flux_model1, loss, loss_init, data, optimizer)
-                    train_loss_1 = loss(flux_model1, loss_init, x_train, y_train)
-                    if train_loss < train_loss_1
-                        train_loss_record = []
-                        flux_model2 = flux_model_builder
-                        Flux.loadparams!(flux_model2, Flux.params(flux_model1))
-                        l = 1
-                        while l < lcheck
-                            my_custom_train!(flux_model2, loss, loss_init, data, optimizer)
-                            train_loss_2 = loss(flux_model2, loss_init, x_train, y_train)
-                            push!(train_loss_record, train_loss_2)
-                            l += 1
-                        end
-                        if sum(train_loss_1 .< train_loss_record) == (lcheck - 1)
-                            try
-                                Flux.stop()
-                            catch
-                            finally
-                            end
-                        break
-                        end
-                    end
-                end
             else
                 try
                     Flux.skip()
@@ -115,6 +89,9 @@ function flux_mod_eval(flux_model_builder :: Any,
     else
         k = 1
         while k < (1 + size(cv_strategy)[1])
+            if pullback == true
+                valid_loss_record = []
+            end
             flux_model = flux_model_builder
             train, test = cv_strategy[k, ]
             if isnothing(scaler_x) == false
@@ -140,32 +117,28 @@ function flux_mod_eval(flux_model_builder :: Any,
             while j < (n_epochs + 1)
                 my_custom_train!(flux_model, loss, loss_init, data, optimizer)
                 valid_loss = loss(flux_model, loss_init, x_test, y_test, false)
+                push!(valid_loss_record, valid_loss)
                 if isnan(valid_loss) == false
                     println("epoch = " * string(j) * " validation_loss = " * string(valid_loss))
                     if pullback == true
-                        flux_model1 = flux_model_builder
-                        Flux.loadparams!(flux_model1, Flux.params(flux_model))
-                        my_custom_train!(flux_model1, loss, loss_init, data, optimizer)
-                        valid_loss_1 = loss(flux_model1, loss_init, x_test, y_test, false)
-                        if valid_loss < valid_loss_1
-                            valid_loss_record = []
-                            flux_model2 = flux_model_builder
-                            Flux.loadparams!(flux_model2, Flux.params(flux_model1))
-                            l = 1
-                            while l < lcheck
-                                my_custom_train!(flux_model2, loss, loss_init, data, optimizer)
-                                valid_loss_2 = loss(flux_model2, loss_init, x_test, y_test, false)
-                                push!(valid_loss_record, valid_loss_2)
-                                l += 1
-                            end
-                            if sum(valid_loss_1 .< valid_loss_record) == (lcheck - 1)
-                                try
-                                    Flux.stop()
-                                catch
-                                finally
+                        weights = Flux.params(Flux.cpu(flux_model))
+                        BSON.@save(save_trained_model_at * "/trained_model_" * string(j) * ".bson", weights)
+                        if (j > lcheck) & (sum(valid_loss .>= valid_loss_record[(j - lcheck):end]) == lcheck)
+                            try
+                                jk = j
+                                while jk > 0
+                                    if jk != (j - lcheck)
+                                        rm(save_trained_model_at * "/trained_model_" * string(jk) * ".bson")
+                                    else
+                                        mv(save_trained_model_at * "/trained_model_" * string(jk) * ".bson", save_trained_model_at * "/trained_model.bson", force = true)
+                                    end
+                                jk -= 1
                                 end
-                            break
+                                Flux.stop()
+                            catch
+                            finally
                             end
+                        break
                         end
                     end
                 else
@@ -177,8 +150,12 @@ function flux_mod_eval(flux_model_builder :: Any,
                 end
                 j += 1
             end
-            y_pred = vec(flux_model(x_test)[1, :])
-            y_pred_train = vec(flux_model(x_train)[1, :])
+            flux_model_pred = flux_model_builder
+            trained_model = save_trained_model_at * "/trained_model.bson"
+            trained_model_weights = BSON.load(trained_model);
+            Flux.loadparams!(flux_model_pred, trained_model_weights[:weights]);
+            y_pred = vec(flux_model_pred(x_test)[1, :])
+            y_pred_train = vec(flux_model_pred(x_train)[1, :])
             if isnothing(scaler_y) == false
                 y_train = vec(scale_back(y_scaler, Matrix(reshape(y_train, length(train), 1)))[:, 1])
                 y_pred_train = vec(scale_back(y_scaler, Matrix(reshape(y_pred_train, length(train), 1)))[:, 1])
@@ -189,8 +166,6 @@ function flux_mod_eval(flux_model_builder :: Any,
             rmse_test = round(sqrt(Flux.Losses.mse(y_pred, y_test)), digits = rmse_precision)
             r2_train = round((Statistics.cor(y_train, y_pred_train))^2, digits = r_squared_precision)
             rmse_train = round(sqrt(Flux.Losses.mse(y_pred_train, y_train)), digits = rmse_precision)
-            weights = Flux.params(Flux.cpu(flux_model))
-            BSON.@save(save_trained_model_at * "/trained_model.bson", weights)
             model_perform = [k r2_test r2_train rmse_test rmse_train]
             if k == 1
                 CSV.write(save_trained_model_at * "/model_training_records.csv", DataFrame(model_perform, [:iter, :r_squared_test, :r_squared_train, :rmse_test, :rmse_train]))
