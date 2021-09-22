@@ -126,19 +126,21 @@ function flux_mod_eval(flux_model_builder :: Any,
                         if (j > lcheck) & (sum(valid_loss .>= valid_loss_record[(j - lcheck):end]) == lcheck)
                             try
                                 jk = j
-                                while jk > 0
-                                    if jk != (j - lcheck)
-                                        rm(save_trained_model_at * "/trained_model_" * string(jk) * ".bson", force = true)
-                                    else
-                                        mv(save_trained_model_at * "/trained_model_" * string(jk) * ".bson", save_trained_model_at * "/trained_model.bson", force = true)
-                                    end
-                                jk -= 1
+                                while jk > (j - lcheck)
+                                    rm(save_trained_model_at * "/trained_model_" * string(jk) * ".bson", force = true)
+                                    jk -= 1
                                 end
+                                mv(save_trained_model_at * "/trained_model_" * string(j - lcheck) * ".bson", save_trained_model_at * "/trained_model.bson", force = true)
                                 Flux.stop()
                             catch
                             finally
                             end
                         break
+                        end
+                        kj = 1
+                        while kj < (j - lcheck)
+                            rm(save_trained_model_at * "/trained_model_" * string(kj) * ".bson", force = true)
+                            kj += 1
                         end
                     end
                 else
