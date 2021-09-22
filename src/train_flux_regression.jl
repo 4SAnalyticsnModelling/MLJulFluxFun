@@ -128,7 +128,7 @@ function flux_mod_eval(flux_model_builder :: Any,
                                 jk = j
                                 while jk > 0
                                     if jk != (j - lcheck)
-                                        rm(save_trained_model_at * "/trained_model_" * string(jk) * ".bson")
+                                        rm(save_trained_model_at * "/trained_model_" * string(jk) * ".bson", force = true)
                                     else
                                         mv(save_trained_model_at * "/trained_model_" * string(jk) * ".bson", save_trained_model_at * "/trained_model.bson", force = true)
                                     end
