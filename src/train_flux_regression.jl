@@ -87,9 +87,9 @@ function flux_mod_eval(flux_model_builder :: Any,
     else
         k = 1
         while k < (1 + size(cv_strategy)[1])
-            early_stop_flag = 0
             if pullback == true
                 valid_loss_record = []
+                early_stop_flag = 0
                 params_dict = Dict()
             end
             flux_model = flux_model_builder
@@ -122,9 +122,14 @@ function flux_mod_eval(flux_model_builder :: Any,
                 if isnan(valid_loss) == false
                     println("epoch = " * string(j) * " validation_loss = " * string(valid_loss))
                     if pullback == true
-                        if j > lcheck
-                            if sum(valid_loss .>= valid_loss_record[(j - lcheck):end]) == lcheck
-                                early_stop_flag = (j - lcheck)
+                        if j > 1
+                            if valid_loss .>= valid_loss_record[j - 1]
+                                early_stop_flag += 1
+                            else
+                                early_stop_flag -= 1
+                            end
+                            early_stop_flag = max(0, min(lcheck, early_stop_flag))
+                            if early_stop_flag == lcheck
                                 try
                                     Flux.stop()
                                 catch
@@ -143,8 +148,8 @@ function flux_mod_eval(flux_model_builder :: Any,
                 end
                 j += 1
             end
-            if early_stop_flag > 0
-                weights = params_dict[Symbol("weights" * string(early_stop_flag))]
+            if early_stop_flag == lcheck
+                weights = params_dict[Symbol("weights" * string(j - early_stop_flag))]
             else
                 weights = params_dict[Symbol("weights" * string(n_epochs))]
             end
