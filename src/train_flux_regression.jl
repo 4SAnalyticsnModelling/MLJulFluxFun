@@ -31,6 +31,7 @@ function flux_mod_eval(flux_model_builder :: Any,
     scaler_x :: Any = nothing,
     scaler_y :: Any = nothing,
     lcheck :: Int64 = 5,
+    lambda2 :: Float64 = 0.0,
     nobs_per_batch :: Int64 = 1,
     r_squared_precision :: Int64 = 3,
     rmse_precision :: Int64 = 2,
@@ -116,7 +117,7 @@ function flux_mod_eval(flux_model_builder :: Any,
             j = 1
             while j < (n_epochs + 1)
                 my_custom_train!(flux_model, loss, loss_init, data, optimizer)
-                valid_loss = loss(flux_model, loss_init, x_test, y_test, false)
+                valid_loss = loss(flux_model, loss_init, x_test, y_test)
                 push!(valid_loss_record, valid_loss)
                 push!(params_dict, Symbol("weights" * string(j)) => Flux.params(Flux.cpu(flux_model)))
                 if isnan(valid_loss) == false
