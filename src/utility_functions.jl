@@ -2,17 +2,20 @@
 using Flux
 using Flux.Zygote
 # Loss function for Flux models (with L2 reuglarization)
-function loss(flux_model, loss_init, x, y :: Vector, lambda2 :: Float64 = lambda2)
+mutable struct lambda2
+    l2_val :: Float64
+end
+function loss(flux_model, loss_init, x, y :: Vector, l2)
     y_pred = vec(flux_model(x)[1, :])
     sqnorm(x) = sum(abs2, x)
-    return (loss_init(y_pred, y) + lambda2 * sum(sqnorm, Flux.params(flux_model)))
+    return (loss_init(y_pred, y) + l2.l2_val * sum(sqnorm, Flux.params(flux_model)))
 end
 # Custom training function for Flux models
-function my_custom_train!(flux_model, loss, loss_init, data, optimizer, lambda2 :: Float64 = lambda2)
+function my_custom_train!(flux_model, loss, loss_init, data, optimizer, l2)
     ps = Flux.params(flux_model)
     for d in data
         gs = Flux.gradient(ps) do
-            train_loss = loss(flux_model, loss_init, d...)
+            train_loss = loss(flux_model, loss_init, d..., l2)
         end
         Flux.update!(optimizer, ps, gs)
     end
