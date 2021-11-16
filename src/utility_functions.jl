@@ -8,7 +8,7 @@ function loss(flux_model, loss_init, x, y :: Vector, lambda2 :: Float64 = lambda
     return (loss_init(y_pred, y) + lambda2 * sum(sqnorm, Flux.params(flux_model)))
 end
 # Custom training function for Flux models
-function my_custom_train!(flux_model, loss, loss_init, data, optimizer)
+function my_custom_train!(flux_model, loss, loss_init, data, optimizer, lambda2 :: Float64 = lambda2)
     ps = Flux.params(flux_model)
     for d in data
         gs = Flux.gradient(ps) do
