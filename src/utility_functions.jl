@@ -5,19 +5,17 @@ using Flux.Zygote
 mutable struct lambda2
     l2_val :: Float64
 end
-function loss(flux_model, loss_init, x, y :: Vector, l2)
-    y_pred = vec(flux_model(x)[1, :])
+function loss(flux_model, loss_init, x, y, l2)
     sqnorm(x) = sum(abs2, x)
-    return (loss_init(y_pred, y) + l2.l2_val * sum(sqnorm, Flux.params(flux_model)))
+    return (loss_init(flux_model(x), y) + l2.l2_val * sum(sqnorm, Flux.params(flux_model)))
 end
 # Custom training function for Flux models
 function my_custom_train!(flux_model, loss, loss_init, data, optimizer, l2)
-    ps = Flux.params(flux_model)
     for d in data
-        gs = Flux.gradient(ps) do
+        gs = Flux.gradient(Flux.params(flux_model)) do
             train_loss = loss(flux_model, loss_init, d..., l2)
         end
-        Flux.update!(optimizer, ps, gs)
+        Flux.update!(optimizer, Flux.params(flux_model), gs)
     end
 end
 # Scaler for data normalization and standardization
