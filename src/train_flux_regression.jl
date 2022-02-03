@@ -1,4 +1,3 @@
-
 using Flux
 using CSV
 using DataFrames
@@ -29,7 +28,7 @@ function flux_mod_eval(flux_model_builder :: Any,
     cv_strategy :: Any = nothing,
     n_epochs :: Int64 = 200,
     pullback :: Bool = true,
-	save_trained_model :: Bool = false,
+    save_trained_model :: Bool = false,
     scaler_x :: Any = nothing,
     lcheck :: Int64 = 5,
     l2_value :: Float64 = 0.0,
@@ -38,11 +37,12 @@ function flux_mod_eval(flux_model_builder :: Any,
     rmse_precision :: Int64 = 2,
     loss_init = Flux.Losses.mse,
     optimizer = Flux.Optimise.Optimiser(Flux.Optimise.ADAM(), Flux.Optimise.ExpDecay()))
-    # model_perform = Array{Float64}(undef, 0, 5)
     rm(save_trained_model_at, force = true, recursive = true)
     mkdir(save_trained_model_at)
 	if save_trained_model
-		mkdir(save_trained_model_at * "/saved_trained_Xscaler(s)")
+		if isnothing(scaler_x) == false
+			mkdir(save_trained_model_at * "/saved_trained_Xscaler(s)")
+		end
 		mkdir(save_trained_model_at * "/saved_trained_model(s)")
 	end
     if isnothing(cv_strategy) == true
