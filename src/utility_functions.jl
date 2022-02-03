@@ -1,6 +1,7 @@
 # Utility and wrapper functions to be used in training and evaluating models
 using Flux
 using Flux.Zygote
+using Statistics
 # Loss function for Flux models (with L2 reuglarization)
 mutable struct lambda2
     l2_val :: Float64
@@ -27,8 +28,11 @@ end
 # Construct standar scaler for data standardization
 mutable struct standard_scaler
 end
+# Construct robust scaler for data standardization (for dataset with outliers)
+mutable struct robust_scaler
+end
 # Function for fitting the scaler
-function fit_scaler(scaler :: Union{max_min_scaler, standard_scaler}, raw_x :: Matrix{Float64})
+function fit_scaler(scaler :: Union{max_min_scaler, standard_scaler, robust_scaler}, raw_x :: Matrix{Float64})
     if typeof(scaler) == max_min_scaler
         i = 1
         max_raw_x, min_raw_x = [], []
@@ -42,11 +46,21 @@ function fit_scaler(scaler :: Union{max_min_scaler, standard_scaler}, raw_x :: M
         i = 1
         mean_raw_x, stdev_raw_x = [], []
         while i < (size(raw_x)[2] + 1)
-            push!(mean_raw_x, sum(raw_x[:, i]) / size(raw_x)[1])
-            push!(stdev_raw_x, sqrt(sum((raw_x[:, i] .- sum(raw_x[:, i]) / size(raw_x)[1]).^2.0) / (size(raw_x)[1] - 1)))
+            push!(mean_raw_x, mean(raw_x[:, i]))
+            push!(stdev_raw_x, sqrt(var(raw_x[:, i])))
             i += 1
         end
         return Dict(:mean_value => mean_raw_x, :stdev_value => stdev_raw_x)
+	elseif typeof(scaler) == robust_scaler
+		i = 1
+		median_raw_x, p75_raw_x, p25_raw_x = [], [], []
+		while i < (size(raw_x)[2] + 1)
+			push!(median_raw_x, median(raw_x[:, i]))
+			push!(p75_raw_x, quantile(raw_x[:, i], 0.75))
+			push!(p25_raw_x, quantile(raw_x[:, i], 0.25))
+			i += 1
+		end
+		return Dict(:median_value => median_raw_x, :p75_value => p75_raw_x, :p25_value => p25_raw_x)
     else
         return nothing
     end
@@ -56,19 +70,13 @@ function scale_transform(fitted_scaler :: Dict, raw_x :: Matrix{Float64})
     i = 1
     conv_x = Matrix{Float64}(undef, size(raw_x)[1], size(raw_x)[2])
     while i < (size(raw_x)[2] + 1)
-        if length(fitted_scaler) == 4
-            if fitted_scaler[:max_value][i] > fitted_scaler[:min_value][i]
-                conv_x[:, i] .= fitted_scaler[:min] .+ (raw_x[:, i] .- fitted_scaler[:min_value][i]) ./ (fitted_scaler[:max_value][i] - fitted_scaler[:min_value][i]) .* (fitted_scaler[:max] - fitted_scaler[:min])
-            else
-                conv_x[:, i] .= raw_x[:, i]
-            end
-        elseif length(fitted_scaler) == 2
-            if fitted_scaler[:stdev_value][i] > 0
-                conv_x[:, i] .= (raw_x[:, i] .- fitted_scaler[:mean_value][i]) ./ fitted_scaler[:stdev_value][i]
-            else
-                conv_x[:, i] .= raw_x[:, i]
-            end
-        else
+        if (haskey(fitted_scaler, :max_value) == true) & (haskey(fitted_scaler, :min_value) == true) & (haskey(fitted_scaler, :max) == true) & (haskey(fitted_scaler, :min) == true)
+	        conv_x[:, i] .= fitted_scaler[:min] .+ (raw_x[:, i] .- fitted_scaler[:min_value][i]) ./ max(1.0, fitted_scaler[:max_value][i] - fitted_scaler[:min_value][i]) .* (fitted_scaler[:max] - fitted_scaler[:min])
+        elseif (haskey(fitted_scaler, :mean_value) == true) & (haskey(fitted_scaler, :stdev_value) == true)
+            conv_x[:, i] .= (raw_x[:, i] .- fitted_scaler[:mean_value][i]) ./ max(1.0, fitted_scaler[:stdev_value][i])
+		elseif (haskey(fitted_scaler, :median_value) == true) & (haskey(fitted_scaler, :p75_value) == true) & (haskey(fitted_scaler, :p25_value) == true)
+			conv_x[:, i] .= (raw_x[:, i] .- fitted_scaler[:median_value][i]) ./ max(1.0, fitted_scaler[:p75_value][i] - fitted_scaler[:p25_value][i])
+		else
             conv_x[:, i] .= raw_x[:, i]
         end
         i += 1
@@ -80,18 +88,12 @@ function scale_back(fitted_scaler :: Dict, conv_x :: Matrix{Float64})
     i = 1
     raw_x = Matrix{Float64}(undef, size(conv_x)[1], size(conv_x)[2])
     while i < (size(raw_x)[2] + 1)
-        if length(fitted_scaler) == 4
-            if fitted_scaler[:max_value][i] > fitted_scaler[:min_value][i]
-                raw_x[:, i] .= fitted_scaler[:min_value][i] .+ (conv_x[:, i] .- fitted_scaler[:min]) .* (fitted_scaler[:max_value][i] - fitted_scaler[:min_value][i]) ./ (fitted_scaler[:max] - fitted_scaler[:min])
-            else
-                raw_x[:, i] .= conv_x[:, i]
-            end
-        elseif length(fitted_scaler) == 2
-            if fitted_scaler[:stdev_value][i] > 0
-                raw_x[:, i] .= fitted_scaler[:mean_value][i] .+ (conv_x[:, i] .* fitted_scaler[:stdev_value][i])
-            else
-                raw_x[:, i] .= conv_x[:, i]
-            end
+        if (haskey(fitted_scaler, :max_value) == true) & (haskey(fitted_scaler, :min_value) == true) & (haskey(fitted_scaler, :max) == true) & (haskey(fitted_scaler, :min) == true)
+            raw_x[:, i] .= fitted_scaler[:min_value][i] .+ (conv_x[:, i] .- fitted_scaler[:min]) .* max(1.0, fitted_scaler[:max_value][i] - fitted_scaler[:min_value][i]) ./ (fitted_scaler[:max] - fitted_scaler[:min])
+        elseif (haskey(fitted_scaler, :mean_value) == true) & (haskey(fitted_scaler, :stdev_value) == true)
+            raw_x[:, i] .= fitted_scaler[:mean_value][i] .+ conv_x[:, i] .* max(1.0, fitted_scaler[:stdev_value][i])
+		elseif (haskey(fitted_scaler, :median_value) == true) & (haskey(fitted_scaler, :p75_value) == true) & (haskey(fitted_scaler, :p25_value) == true)
+			raw_x[:, i] .= fitted_scaler[:median_value][i] .+ conv_x[:, i] .* max(1.0, fitted_scaler[:p75_value][i] - fitted_scaler[:p25_value][i])
         else
             raw_x[:, i] .= conv_x[:, i]
         end
