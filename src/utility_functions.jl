@@ -71,11 +71,23 @@ function scale_transform(fitted_scaler :: Dict, raw_x :: Matrix{Float64})
     conv_x = Matrix{Float64}(undef, size(raw_x)[1], size(raw_x)[2])
     while i < (size(raw_x)[2] + 1)
         if (haskey(fitted_scaler, :max_value) == true) & (haskey(fitted_scaler, :min_value) == true) & (haskey(fitted_scaler, :max) == true) & (haskey(fitted_scaler, :min) == true)
-	        conv_x[:, i] .= fitted_scaler[:min] .+ (raw_x[:, i] .- fitted_scaler[:min_value][i]) ./ max(1.0, fitted_scaler[:max_value][i] - fitted_scaler[:min_value][i]) .* (fitted_scaler[:max] - fitted_scaler[:min])
+			if (fitted_scaler[:max_value][i] - fitted_scaler[:min_value][i]) > 1.0
+		        conv_x[:, i] .= fitted_scaler[:min] .+ (raw_x[:, i] .- fitted_scaler[:min_value][i]) ./ (fitted_scaler[:max_value][i] - fitted_scaler[:min_value][i]) .* (fitted_scaler[:max] - fitted_scaler[:min])
+			else
+				conv_x[:, i] .= raw_x[:, i]
+	        end
         elseif (haskey(fitted_scaler, :mean_value) == true) & (haskey(fitted_scaler, :stdev_value) == true)
-            conv_x[:, i] .= (raw_x[:, i] .- fitted_scaler[:mean_value][i]) ./ max(1.0, fitted_scaler[:stdev_value][i])
+			if fitted_scaler[:stdev_value][i] > 1.0
+            	conv_x[:, i] .= (raw_x[:, i] .- fitted_scaler[:mean_value][i]) ./ fitted_scaler[:stdev_value][i]
+			else
+				conv_x[:, i] .= raw_x[:, i]
+	        end
 		elseif (haskey(fitted_scaler, :median_value) == true) & (haskey(fitted_scaler, :p75_value) == true) & (haskey(fitted_scaler, :p25_value) == true)
-			conv_x[:, i] .= (raw_x[:, i] .- fitted_scaler[:median_value][i]) ./ max(1.0, fitted_scaler[:p75_value][i] - fitted_scaler[:p25_value][i])
+			if (fitted_scaler[:p75_value][i] - fitted_scaler[:p25_value][i]) > 1.0
+				conv_x[:, i] .= (raw_x[:, i] .- fitted_scaler[:median_value][i]) ./ (fitted_scaler[:p75_value][i] - fitted_scaler[:p25_value][i])
+			else
+				conv_x[:, i] .= raw_x[:, i]
+			end
 		else
             conv_x[:, i] .= raw_x[:, i]
         end
@@ -89,11 +101,23 @@ function scale_back(fitted_scaler :: Dict, conv_x :: Matrix{Float64})
     raw_x = Matrix{Float64}(undef, size(conv_x)[1], size(conv_x)[2])
     while i < (size(raw_x)[2] + 1)
         if (haskey(fitted_scaler, :max_value) == true) & (haskey(fitted_scaler, :min_value) == true) & (haskey(fitted_scaler, :max) == true) & (haskey(fitted_scaler, :min) == true)
-            raw_x[:, i] .= fitted_scaler[:min_value][i] .+ (conv_x[:, i] .- fitted_scaler[:min]) .* max(1.0, fitted_scaler[:max_value][i] - fitted_scaler[:min_value][i]) ./ (fitted_scaler[:max] - fitted_scaler[:min])
-        elseif (haskey(fitted_scaler, :mean_value) == true) & (haskey(fitted_scaler, :stdev_value) == true)
-            raw_x[:, i] .= fitted_scaler[:mean_value][i] .+ conv_x[:, i] .* max(1.0, fitted_scaler[:stdev_value][i])
+			if (fitted_scaler[:max_value][i] - fitted_scaler[:min_value][i]) > 1.0
+	            raw_x[:, i] .= fitted_scaler[:min_value][i] .+ (conv_x[:, i] .- fitted_scaler[:min]) .* (fitted_scaler[:max_value][i] - fitted_scaler[:min_value][i]) ./ (fitted_scaler[:max] - fitted_scaler[:min])
+			else
+	            raw_x[:, i] .= conv_x[:, i]
+	        end
+		elseif (haskey(fitted_scaler, :mean_value) == true) & (haskey(fitted_scaler, :stdev_value) == true)
+			if fitted_scaler[:stdev_value][i] > 1.0
+				raw_x[:, i] .= fitted_scaler[:mean_value][i] .+ conv_x[:, i] .* fitted_scaler[:stdev_value][i]
+			else
+				raw_x[:, i] .= conv_x[:, i]
+			end
 		elseif (haskey(fitted_scaler, :median_value) == true) & (haskey(fitted_scaler, :p75_value) == true) & (haskey(fitted_scaler, :p25_value) == true)
-			raw_x[:, i] .= fitted_scaler[:median_value][i] .+ conv_x[:, i] .* max(1.0, fitted_scaler[:p75_value][i] - fitted_scaler[:p25_value][i])
+			if (fitted_scaler[:p75_value][i] - fitted_scaler[:p25_value][i]) > 1.0
+				raw_x[:, i] .= fitted_scaler[:median_value][i] .+ conv_x[:, i] .* (fitted_scaler[:p75_value][i] - fitted_scaler[:p25_value][i])
+			else
+				raw_x[:, i] .= conv_x[:, i]
+			end
         else
             raw_x[:, i] .= conv_x[:, i]
         end
