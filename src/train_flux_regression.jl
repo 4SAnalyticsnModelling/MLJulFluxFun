@@ -41,9 +41,9 @@ function flux_mod_eval(flux_model_builder :: Any,
     mkdir(save_trained_model_at)
     if save_trained_model
 	mkdir(save_trained_model_at * "/saved_trained_model(s)")
-    end
-    if isnothing(scaler_x) == false
-	mkdir(save_trained_model_at * "/saved_trained_Xscaler(s)")
+	if isnothing(scaler_x) == false
+	   mkdir(save_trained_model_at * "/saved_trained_Xscaler(s)")
+        end
     end
     if isnothing(cv_strategy) == true
         model_perform = Array{Float64}(undef, 0, 2)
