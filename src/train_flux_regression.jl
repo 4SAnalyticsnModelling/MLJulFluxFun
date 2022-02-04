@@ -39,12 +39,12 @@ function flux_mod_eval(flux_model_builder :: Any,
     optimizer = Flux.Optimise.Optimiser(Flux.Optimise.ADAM(), Flux.Optimise.ExpDecay()))
     rm(save_trained_model_at, force = true, recursive = true)
     mkdir(save_trained_model_at)
-	if save_trained_model
-		if isnothing(scaler_x) == false
-			mkdir(save_trained_model_at * "/saved_trained_Xscaler(s)")
-		end
-		mkdir(save_trained_model_at * "/saved_trained_model(s)")
-	end
+    if save_trained_model
+	mkdir(save_trained_model_at * "/saved_trained_model(s)")
+    end
+    if isnothing(scaler_x) == false
+	mkdir(save_trained_model_at * "/saved_trained_Xscaler(s)")
+    end
     if isnothing(cv_strategy) == true
         model_perform = Array{Float64}(undef, 0, 2)
         train = eachindex(y)
