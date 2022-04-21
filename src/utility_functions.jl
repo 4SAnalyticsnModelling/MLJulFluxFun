@@ -55,15 +55,15 @@ function fit_scaler(scaler :: Union{max_min_scaler, standard_scaler, robust_scal
         i = 1
         mean_raw_x, stdev_raw_x = [], []
         while i < (size(raw_x)[2] + 1)
-			mean_raw_x0 = mean(raw_x[:, i]
-			stdev_raw_x0 = sqrt(var(raw_x[:, i]
+			mean_raw_x0 = mean(raw_x[:, i])
+			stdev_raw_x0 = sqrt(var(raw_x[:, i]))
 			if abs(stdev_raw_x0) < 1.0
 				stdev_raw_x1 = 1.0
 			else
 				stdev_raw_x1 = stdev_raw_x0
 			end
-            push!(mean_raw_x, mean_raw_x0))
-            push!(stdev_raw_x, stdev_raw_x1)))
+            push!(mean_raw_x, mean_raw_x0)
+            push!(stdev_raw_x, stdev_raw_x1)
             i += 1
         end
         return Dict(:mean_value => mean_raw_x, :stdev_value => stdev_raw_x)
