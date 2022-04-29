@@ -15,7 +15,7 @@ function mlj_mod_eval(mlj_model,
     tuning_param_rng :: T,
     cv_strategy :: Any = nothing,
     r_squared_precision :: Int64 = 3,
-    rmse_precision :: Int64 = 2) where {T <: Union{StepRange{Int64, Int64}, StepRangeLen{Float64, Base.TwicePrecision{Float64}, Base.TwicePrecision{Float64}}}}
+    rmse_precision :: Int64 = 2) where (T <: Union{StepRange{Int64, Int64}, StepRangeLen{Float64, Base.TwicePrecision{Float64}, Base.TwicePrecision{Float64}}})
     model_perform_t = Array{Float64}(undef, 0, 3);
     model_perform_mat_t = Array{Float64}(undef, 0, 3);
     model_perform = Array{Float64}(undef, 0, 6);

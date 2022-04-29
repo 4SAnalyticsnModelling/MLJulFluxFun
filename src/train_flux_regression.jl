@@ -56,7 +56,7 @@ function flux_mod_eval(flux_model_builder :: Any,
 			if pullback == true
 	            valid_loss_record = []
 	            early_stop_flag = 0
-	            params_dict = Dict()
+	            model_dict = Dict()
 	        end
 			if isnothing(scaler_x) == false
 	            x_scaler = fit_scaler(scaler_x, Matrix(x[train, :]))
@@ -80,7 +80,7 @@ function flux_mod_eval(flux_model_builder :: Any,
 	            my_custom_train!(flux_model, loss, loss_init, data, optimizer)
 	            valid_loss = loss(flux_model, loss_init, x_valid, y_valid)
 	            push!(valid_loss_record, valid_loss)
-	            push!(params_dict, Symbol("weights" * string(j)) => Flux.params(Flux.cpu(flux_model)))
+	            push!(model_dict, Symbol("model" * string(j)) => flux_model)
 	            if isnan(valid_loss) == false
 	                println("epoch = " * string(j) * " validation_loss = " * string(valid_loss))
 	                if pullback == true
@@ -111,12 +111,12 @@ function flux_mod_eval(flux_model_builder :: Any,
 	            j += 1
 	        end
 	        if early_stop_flag == lcheck
-	            weights = params_dict[Symbol("weights" * string(j - early_stop_flag))]
+	            model = model_dict[Symbol("model" * string(j - early_stop_flag))]
 	        else
-	            weights = params_dict[Symbol("weights" * string(n_epochs))]
+	            model = model_dict[Symbol("model" * string(n_epochs))]
 	        end
 	        flux_model_pred = flux_model_builder
-	        Flux.loadparams!(flux_model_pred, weights);
+	        Flux.loadmodel!(flux_model_pred, model);
 	        y_pred_test = flux_model_pred(x_test)
 			y_pred_valid = flux_model_pred(x_valid)
 	        y_pred_train = flux_model_pred(x_train)
@@ -133,8 +133,7 @@ function flux_mod_eval(flux_model_builder :: Any,
 	            CSV.write(save_trained_model_at * "/model_training_records.csv", DataFrame(model_perform, [:test_iter, :train_iter, :r_squared_test, :r_squared_train, :r_squared_valid, :rmse_test, :rmse_valid, :rmse_train]), append = true)
 	        end
 			if save_trained_model
-				weights = Flux.params(Flux.cpu(flux_model))
-				BSON.@save(save_trained_model_at * "/saved_trained_model(s)/trained_model_" * string(k) * string(l) * ".bson", weights)
+				BSON.@save(save_trained_model_at * "/saved_trained_model(s)/trained_model_" * string(k) * string(l) * ".bson", flux_model)
 			end
 			l += 1
 	    end
@@ -188,9 +187,8 @@ function flux_mod_stack(flux_model_builder :: Any,
             println("epoch = " * string(j) * " training_loss = " * string(train_loss))
             j += 1
         end
-		weights = Flux.params(Flux.cpu(flux_model))
         flux_model_pred = flux_model_builder
-        Flux.loadparams!(flux_model_pred, weights);
+        Flux.loadmodel!(flux_model_pred, flux_model);
         y_pred_train = flux_model_pred(x_train)
 		append!(y_meta, y_pred_train)
 		r2_train = round((Statistics.cor(y_train[1, :], y_pred_train[1, :]))^2, digits = r_squared_precision)
@@ -223,16 +221,14 @@ function flux_mod_stack(flux_model_builder :: Any,
 		println("epoch = " * string(j) * " training_loss = " * string(train_loss))
 		j += 1
 	end
-	weights = Flux.params(Flux.cpu(flux_model))
 	flux_model_pred = flux_model_builder
-	Flux.loadparams!(flux_model_pred, weights);
+	Flux.loadmodel!(flux_model_pred, flux_model);
 	y_pred_train = flux_model_pred(x_train)
 	r2_train = round((Statistics.cor(y_train[1, :], y_pred_train[1, :]))^2, digits = r_squared_precision)
 	rmse_train = round(sqrt(Flux.Losses.mse(y_pred_train, y_train)), digits = rmse_precision)
 	model_perform = [r2_train rmse_train]
 	CSV.write(save_trained_model_at * "/ensembled_meta_model_training_records.csv", DataFrame(model_perform, [:r_squared_train, :rmse_train]))
 	if save_trained_model
-		weights = Flux.params(Flux.cpu(flux_model))
-		BSON.@save(save_trained_model_at * "/saved_ensembled_meta_model(s)/trained_model_.bson", weights)
+		BSON.@save(save_trained_model_at * "/saved_ensembled_meta_model(s)/trained_model_.bson", flux_model)
 	end
 end
