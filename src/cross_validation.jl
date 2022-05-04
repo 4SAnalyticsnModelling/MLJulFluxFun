@@ -35,11 +35,11 @@ function cross_validate(cv_name :: Union{Holdout, KFold, GroupedKFold}, ids :: U
     elseif typeof(cv_name) == KFold
         ids_mat = collect(ids)
         for i in 1:cv_name.nsample
-            if cv_name.shuffle_id
-                Random.shuffle!(ids_mat)
-            end
-            paired_mat = [ids_mat vcat(repeat(collect(1:cv_name.k), inner = div(size(ids_mat)[1], cv_name.k)), collect(1:cv_name.k)[1:rem(size(ids_mat)[1], cv_name.k)])]
             for i in 1:cv_name.k
+                if cv_name.shuffle_id
+                    Random.shuffle!(ids_mat)
+                end
+                paired_mat = [ids_mat vcat(repeat(collect(1:cv_name.k), inner = div(size(ids_mat)[1], cv_name.k)), collect(1:cv_name.k)[1:rem(size(ids_mat)[1], cv_name.k)])]
                 train_test = (paired_mat[paired_mat[:, 2] .!= i, 1], paired_mat[paired_mat[:, 2] .== i, 1])
                 push!(train_test_pairs, train_test)
             end
