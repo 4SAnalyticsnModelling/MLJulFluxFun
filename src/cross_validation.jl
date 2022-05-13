@@ -30,8 +30,8 @@ function cross_validate(cv_name :: Union{Holdout_, KFold_, GroupedKFold_}, ids :
                     if cv_name.shuffle_id
                         Random.shuffle!(ids_mat)
                     end
-                    break_poInt64 = trunc(Int64, round(size(ids_mat)[1] * cv_name.train_frac))
-                    train_test = (ids_mat[1:break_poInt64], ids_mat[(break_poInt64 + 1):size(ids_mat)[1]])
+                    break_point = trunc(Int64, round(size(ids_mat)[1] * cv_name.train_frac))
+                    train_test = (ids_mat[1:break_point], ids_mat[(break_point + 1):size(ids_mat)[1]])
                     push!(train_test_pairs, train_test)
                 end
             end
