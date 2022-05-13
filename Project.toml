@@ -1,3 +1,7 @@
+name = "MLJulFluxFun"
+uuid = "391ca528-32a1-52b0-8a23-553d6f0c356d"
+repo = "https://github.com/4SAnalyticsnModelling/MLJulFluxFun"
+authors = ["Symon Mezbahuddin"]
 [deps]
 BSON = "fbb218c0-5317-5bc6-957e-2ee96dd4b1f0"
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
