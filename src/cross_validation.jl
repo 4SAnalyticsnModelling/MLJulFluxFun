@@ -1,6 +1,7 @@
 # Different cross-validation techniques
 using Random
 using Distributed
+using DataFrames
 # Construct cross-validation strategies
 # Holdout_
 mutable struct Holdout_
@@ -58,10 +59,12 @@ function cross_validate(cv_name :: Union{Holdout_, KFold_, GroupedKFold_}, ids :
         return train_test_pairs
     elseif typeof(cv_name) == GroupedKFold_
         train_test_pairs = []
-        paired_mat = [collect(ids) collect(cv_name.group_list)]
+        ids_mat = collect(ids)
+        # paired_mat = [collect(ids) collect(cv_name.group_list)]
         for groups in unique(cv_name.group_list)
-            train_test = (convert.(Int64, paired_mat[paired_mat[:, 2] .!= groups, 1]), convert.(Int64, paired_mat[paired_mat[:, 2] .== groups, 1]))
-            train_test_pairs = vcat(train_test_pairs, train_test)
+            k = findall(q -> q == groups, cv_name.group_list)
+            train_test = (ids_mat[Not(k)], ids_mat[k])
+            push!(train_test_pairs, train_test)
         end
         return train_test_pairs
     else
