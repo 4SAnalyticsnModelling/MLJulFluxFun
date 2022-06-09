@@ -265,7 +265,7 @@ function flux_mod_stack(flux_model_builder :: Any,
 		fetch(t)
 	end
 	# train the meta-learner
-	cv_train = cross_validate(Holdout_(meta_train_frac, false, 1), eachindex(y_meta))
+	cv_train = cross_validate(Holdout_(meta_train_frac, true, 1), eachindex(y_meta))
 	flux_model = flux_model_builder
 	train, valid = cv_train[1, ]
 	if pullback == true
