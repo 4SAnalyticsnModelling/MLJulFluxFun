@@ -5,12 +5,12 @@ using Statistics
 using Distributed
 
 # Loss function for Flux models
-# function loss(flux_model, loss_init, x, y)
-#     return loss_init(flux_model(x), y)
-# end
 function loss(flux_model, loss_init, x, y)
-    return sum(loss_init(flux_model(xi), yi) for (xi, yi) in zip(x, y))
-end	
+    return loss_init(flux_model(x), y)
+end
+# function loss(flux_model, loss_init, x, y)
+#     return sum(loss_init(flux_model(xi), yi) for (xi, yi) in zip(x, y))
+# end	
 # Custom training function for Flux models
 function my_custom_train!(flux_model, loss, loss_init, data, optimizer)
     for d in data
